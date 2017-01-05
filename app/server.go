@@ -5,6 +5,13 @@ import (
 	"net/http"
 )
 
-type DalekHandler struct {}
+type DalekHandler struct {
+	w Warehouse
+}
 
-func (f DalekHandler) ServeHTTP (rw ResponseWriter, req *Request) {}
+func (d DalekHandler) ServeHTTP (rw ResponseWriter, req *Request) {
+	mux := http.NewServeMux()
+
+	// todo - write the RESTful stuff
+	mux.HandleFunc("/", func (rw ResponseWriter, req *Request) {})
+}
