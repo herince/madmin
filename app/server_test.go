@@ -1,0 +1,5 @@
+package madmin
+/*
+import (
+	"testing"
+)*/
