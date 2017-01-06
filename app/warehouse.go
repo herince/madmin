@@ -1,8 +1,12 @@
 package madmin
 
 type Warehouse struct {
-	stock []Stock
+	stock map[string]Stock
 }
 
-func (w *Warehouse) Add(item *Stock) error {}
-func (w *Warehouse) Remove(item *Stock) error {}
+func (w *Warehouse) Add(item *Stock) error {
+	return nil
+}
+func (w *Warehouse) Remove(item *Stock) error {
+	return nil
+}
