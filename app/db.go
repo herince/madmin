@@ -1,4 +1,5 @@
-package madmin
+package app
+
 /*
 import (
 	"fmt"
@@ -6,4 +7,3 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/shopspring/decimal"
 ) */
-

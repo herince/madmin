@@ -1,4 +1,5 @@
-package madmin
+package app
+
 /*
 import (
 	"testing"

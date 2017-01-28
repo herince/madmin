@@ -1,1 +1,1 @@
-package madmin
+package app

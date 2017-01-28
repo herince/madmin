@@ -1,8 +1,10 @@
-package madmin
+package app
 
 import (
 	"github.com/shopspring/decimal"
 	"time"
+	//"fmt"
+	"errors"
 )
 
 type StockType int
@@ -14,157 +16,205 @@ const (
 )
 
 type Stock interface {
-	ID() string
+	Id() string
 	Type() StockType
 
 	Name() string
-	Name(string)
+	SetName(string)
 
 	IsExpirable() bool
 	ExpirationDate() time.Time
-	ExpirationDate(time.Time)
+	SetExpirationDate(time.Time)
 
 	MinQuantity() decimal.Decimal
-	MinQuantity(uint16)
+	SetMinQuantity(decimal.Decimal)
 
 	Distributor() string
 }
 
 // NewStock creates an unexpirable Stock object with the most basic needed information
-func NewStock(s StockType,
-	id string,
-	name string) *Stock {
+func NewStock(t StockType,
+	name string) (Stock, error) {
 
-	return nil
+	switch t {
+	case MedicineStock:
+		newItem, err := NewMedicine()
+		newItem.SetName(name)
+		return *newItem, err
+	case FeedStock:
+		newItem, err := NewFeed()
+		newItem.SetName(name)
+		return *newItem, err
+	case AccessoryStock:
+		newItem, err := NewAccessory()
+		newItem.SetName(name)
+		return *newItem, err
+	default:
+		return nil, errors.New("Invalid stock type")
+	}
 }
 
 // NewStock creates an expirable Stock object with the most basic needed information
+/*
 func NewStock(s StockType,
-	id string,
 	name string,
 	expirationDate time.Time) *Stock {
 
 	return nil
-}
+}*/
 
 // full way to add a new stock
+/*
 func NewStock(s StockType,
-	id string, name string,
+	name string,
 	expirable bool,
 	expirationDate time.Time,
 	minQuantity decimal.Decimal,
 	distributor string) *Stock {
 
-	return nil
-}
+	s := &Stock{}
 
-type Medicine struct {
+	id, err := newUUID()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(id)
+
+	return nil
+}*/
+
+type medicine struct {
 	id             string
 	name           string
 	minQuantity    decimal.Decimal
 	expirationDate time.Time
 }
 
-func (m *Medicine) ID() string {
+func NewMedicine() (*medicine, error) {
+	var (
+		id, err = newUUID()
+		m       = &medicine{id: id}
+	)
+	return m, err
+}
+
+func (m medicine) Id() string {
 	return m.id
 }
-func (m *Medicine) Type() StockType {
+func (m medicine) Type() StockType {
 	return MedicineStock
 }
-func (m *Medicine) Name() string {
+func (m medicine) Name() string {
 	return m.name
 }
-func (m *Medicine) Name(newName string) {
+func (m medicine) SetName(newName string) {
 	m.name = newName
 }
-func (m *Medicine) IsExpirable() bool {
+func (m medicine) IsExpirable() bool {
 	return true
 }
-func (m *Medicine) ExpirationDate() time.Time {
+func (m medicine) ExpirationDate() time.Time {
 	return m.expirationDate
 }
-func (m *Medicine) ExpirationDate(expirationDate time.Time) {
+func (m medicine) SetExpirationDate(expirationDate time.Time) {
 	m.expirationDate = expirationDate
 }
-func (m *Medicine) MinQuantity() decimal.Decimal {
+func (m medicine) MinQuantity() decimal.Decimal {
 	return m.minQuantity
 }
-func (m *Medicine) MinQuantity(minQuantity uint16) {
-	m.minQuantity = minQuantity
+func (m medicine) SetMinQuantity(quantity decimal.Decimal) {
+	m.minQuantity = quantity
 }
-func (m *Medicine) Distributor() string {
+func (m medicine) Distributor() string {
 	return ""
 }
 
-type Feed struct {
+type feed struct {
 	id             string
 	name           string
 	expirationDate time.Time
 	minQuantity    decimal.Decimal
 }
 
-func (f *Feed) ID() string {
+func NewFeed() (*feed, error) {
+	var (
+		id, err = newUUID()
+		f       = &feed{id: id}
+	)
+	return f, err
+}
+
+func (f feed) Id() string {
 	return f.id
 }
-func (f *Feed) Type() StockType {
+func (f feed) Type() StockType {
 	return FeedStock
 }
-func (f *Feed) Name() string {
+func (f feed) Name() string {
 	return f.name
 }
-func (f *Feed) Name(newName string) {
+func (f feed) SetName(newName string) {
 	f.name = newName
 }
-func (f *Feed) IsExpirable() bool {
+func (f feed) IsExpirable() bool {
 	return true
 }
-func (f *Feed) ExpirationDate() (time.Time, error) {
-	return f.expirationDate, nil
-}
-func (f *Feed) ExpirationDate(time.Time) {
+func (f feed) ExpirationDate() time.Time {
 	return f.expirationDate
 }
-func (f *Feed) MinQuantity() decimal.Decimal {
+func (f feed) SetExpirationDate(expirationDate time.Time) {
+	f.expirationDate = expirationDate
+}
+func (f feed) MinQuantity() decimal.Decimal {
 	return f.minQuantity
 }
-func (f *Feed) MinQuantity(quantity uint16) {
-	f.minQuantity = minQuantity
+func (f feed) SetMinQuantity(quantity decimal.Decimal) {
+	f.minQuantity = quantity
 }
-func (f *Feed) Distributor() string {
+func (f feed) Distributor() string {
 	return ""
 }
 
-type Accessory struct {
+type accessory struct {
 	id          string
 	name        string
-	minQuantity uint64
+	minQuantity int64
 }
 
-func (a *Accessory) ID() string {
+func NewAccessory() (*accessory, error) {
+	var (
+		id, err = newUUID()
+		a       = &accessory{id: id}
+	)
+	return a, err
+}
+
+func (a accessory) Id() string {
 	return a.id
 }
-func (a *Accessory) Type() StockType {
+func (a accessory) Type() StockType {
 	return AccessoryStock
 }
-func (a *Accessory) Name() string {
+func (a accessory) Name() string {
 	return a.name
 }
-func (a *Accessory) Name(newName string) {
+func (a accessory) SetName(newName string) {
 	a.name = newName
 }
-func (a *Accessory) IsExpirable() bool {
+func (a accessory) IsExpirable() bool {
 	return false
 }
-func (a *Accessory) ExpirationDate() time.Time {
+func (a accessory) ExpirationDate() time.Time {
 	return time.Time{}
 }
-func (a *Accessory) ExpirationDate(time.Time) {}
-func (a *Accessory) MinQuantity() decimal.Decimal {
-	return decimal.New(minQuantity, 0)
+func (a accessory) SetExpirationDate(time.Time) {}
+func (a accessory) MinQuantity() decimal.Decimal {
+	return decimal.New(a.minQuantity, 0)
 }
-func (a *Accessory) MinQuantity(quantity decimal.Decimal) {
+func (a accessory) SetMinQuantity(quantity decimal.Decimal) {
 	a.minQuantity = quantity.IntPart()
 }
-func (a *Accessory) Distributor() string {
+func (a accessory) Distributor() string {
 	return ""
 }
