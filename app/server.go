@@ -10,9 +10,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Init(port string) {
+func Init(port string, handler http.Handler) {
 	madminHandler := NewMAdminHandler()
-	http.Handle("/", madminHandler)
+	http.Handle("/data/", madminHandler)
+
+	http.Handle("/", http.FileServer(http.Dir("static/")))
 
 	log.Println("Listening...")
 	http.ListenAndServe(port, nil)
@@ -34,8 +36,8 @@ func NewMAdminHandler() *MAdminHandler {
 	madminHandler.wh = &Warehouse{make(map[string]Stock)}
 
 	madminHandler.router = mux.NewRouter()
-	madminHandler.router.HandleFunc("/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET")
-	madminHandler.router.HandleFunc("/stock/", madminHandler.stockRequestsHandler).Methods("GET", "POST")
+	madminHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET")
+	madminHandler.router.HandleFunc("/data/stock/", madminHandler.stockRequestsHandler).Methods("GET", "POST")
 
 	return madminHandler
 }
@@ -70,7 +72,7 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
 	)
 
 	for _, item := range m.wh.Stock {
-		itemUrl = fmt.Sprintf("/stock/%s", item.Name())
+		itemUrl = fmt.Sprintf("/data/stock/%s", item.Name())
 		resp.Urls = append(resp.Urls, itemUrl)
 	}
 
