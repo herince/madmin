@@ -4,12 +4,13 @@ type Warehouse struct {
 	Stock map[string]Stock
 }
 
-func (w *Warehouse) AddItem(item *Stock) error {
-	return nil
+func (w *Warehouse) Add(item Stock) {
+	w.Stock[item.Id()] = item
 }
-func (w *Warehouse) GetItem(id string) (Stock, error) {
-	return w.Stock[id], nil
+func (w *Warehouse) Get(id string) (Stock, bool) {
+	item, ok := w.Stock[id]
+	return item, ok
 }
-func (w *Warehouse) RemoveItem(item *Stock) error {
+func (w *Warehouse) Remove(item *Stock) error {
 	return nil
 }

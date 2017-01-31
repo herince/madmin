@@ -10,10 +10,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func Init(port string) {
+	madminHandler := NewMAdminHandler()
+	http.Handle("/", madminHandler)
+
+	log.Println("Listening...")
+	http.ListenAndServe(port, nil)
+}
+
 type MAdminHandler struct {
 	router *mux.Router
 
-	wh Warehouse
+	wh *Warehouse
 }
 
 func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -23,9 +31,11 @@ func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewMAdminHandler() *MAdminHandler {
 	madminHandler := &MAdminHandler{}
 
+	madminHandler.wh = &Warehouse{make(map[string]Stock)}
+
 	madminHandler.router = mux.NewRouter()
 	madminHandler.router.HandleFunc("/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET")
-	madminHandler.router.HandleFunc("/stock/", madminHandler.stockListHandler).Methods("GET")
+	madminHandler.router.HandleFunc("/stock/", madminHandler.stockRequestsHandler).Methods("GET", "POST")
 
 	return madminHandler
 }
@@ -38,8 +48,20 @@ type CollectionResponse struct {
 	Urls []string `json:"urls"`
 }
 
-// lists existing stock items
-// handler for GET /stock/
+func (m *MAdminHandler) stockRequestsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+		case "GET":
+			m.stockListHandler(w, r)
+		case "POST":
+			m.addStockHandler(w, r)
+	}
+}
+
+/*
+ * Handler for GET /stock/
+ * 
+ * Lists existing stock items.
+ */
 func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		resp = &CollectionResponse{"List of existing stock items", make([]string, 0, len(m.wh.Stock))}
@@ -68,7 +90,7 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
 /*
  * JSON format for the GET requests for "/<items>/<id>"
  */
-type StockItemResponse struct {
+type StockDTO struct {
 	Id string `json:"id"`
 
 	Name string    `json:"name"`
@@ -80,6 +102,12 @@ type StockItemResponse struct {
 	Distributor string `json:"distributor"`
 }
 
+/*
+ * Handler for GET /stock/<id>
+ * 
+ * Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
+ * or an emptry response with status code 204 (if there is no such item in the warehouse).
+ */
 func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
@@ -93,7 +121,7 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	resp := &StockItemResponse{}
+	resp := &StockDTO{}
 
 	resp.Id = item.Id()
 	resp.Name = item.Name()
@@ -115,4 +143,32 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 	if _, err := w.Write(respBytes); err != nil {
 		log.Printf("Error while writing response: %s", err)
 	}
+}
+
+/*
+ * Handler for POST /stock/
+ * 
+ * Adds an item to the warehouse.
+ */
+func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		newItem = &StockDTO{}
+
+		decoder = json.NewDecoder(r.Body)
+		err = decoder.Decode(newItem)
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("Error in unmarchaling request body: %s", err)
+		return
+	}
+	defer r.Body.Close()
+
+	log.Println(newItem)
+
+	stockItem, err := NewStock(newItem.Type, newItem.Name)
+	m.wh.Add(stockItem)
+	
+	log.Println(m.wh)
+	// todo - test it properly.
 }
