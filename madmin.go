@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/herince/madmin/app"
 	"log"
 	"net/http"
-	"github.com/herince/madmin/app"
 )
 
 func main() {
-// 	fs := http.FileServer(http.Dir("static/"))
-// 	http.Handle("/", fs)
+	// 	fs := http.FileServer(http.Dir("static/"))
+	// 	http.Handle("/", fs)
 
 	mah := app.NewMAdminHandler()
 	http.Handle("/", mah)

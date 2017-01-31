@@ -5,25 +5,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
+
+	"github.com/gorilla/mux"
 )
 
 type MAdminHandler struct {
-	mux *http.ServeMux
+	router *mux.Router
 
 	wh Warehouse
 }
 
 func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	m.mux.ServeHTTP(w, r)
+	m.router.ServeHTTP(w, r)
 }
 
 func NewMAdminHandler() *MAdminHandler {
-	mah := &MAdminHandler{}
+	madminHandler := &MAdminHandler{}
 
-	mah.mux = http.NewServeMux()
-	mah.mux.HandleFunc("/stock/", RestrictedMethodHandler("GET", mah.stockListHandler))
+	madminHandler.router = mux.NewRouter()
+	madminHandler.router.HandleFunc("/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET")
+	madminHandler.router.HandleFunc("/stock/", madminHandler.stockListHandler).Methods("GET")
 
-	return mah
+	return madminHandler
 }
 
 /*
@@ -48,7 +52,6 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
 		resp.Urls = append(resp.Urls, itemUrl)
 	}
 
-	// todo - use the CollectionResponse structure
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -62,12 +65,54 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func RestrictedMethodHandler(method string, handler http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != method {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		handler(w, r)
+/*
+ * JSON format for the GET requests for "/<items>/<id>"
+ */
+type StockItemResponse struct {
+	Id string `json:"id"`
+
+	Name string    `json:"name"`
+	Type StockType `json:"type"`
+
+	ExpirationDate string `json:"expirationDate"`
+	MinQuantity    string `json:"minQuantity"`
+
+	Distributor string `json:"distributor"`
+}
+
+func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		query = r.URL
+		_, id = path.Split(query.String())
+
+		item, ok = m.wh.Stock[id]
+	)
+	if !ok {
+		w.Header().Add("ContentLength", "0")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	resp := &StockItemResponse{}
+
+	resp.Id = item.Id()
+	resp.Name = item.Name()
+	resp.Type = item.Type()
+	if item.IsExpirable() {
+		resp.ExpirationDate = item.ExpirationDate().String()
+	}
+	resp.MinQuantity = item.MinQuantity().String()
+	resp.Distributor = item.Distributor()
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error in marshalling results: %s", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(respBytes); err != nil {
+		log.Printf("Error while writing response: %s", err)
 	}
 }
