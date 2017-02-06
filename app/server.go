@@ -52,16 +52,16 @@ type CollectionResponse struct {
 
 func (m *MAdminHandler) stockRequestsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-		case "GET":
-			m.stockListHandler(w, r)
-		case "POST":
-			m.addStockHandler(w, r)
+	case "GET":
+		m.stockListHandler(w, r)
+	case "POST":
+		m.addStockHandler(w, r)
 	}
 }
 
 /*
  * Handler for GET /stock/
- * 
+ *
  * Lists existing stock items.
  */
 func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request) {
@@ -90,23 +90,8 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
 }
 
 /*
- * JSON format for the GET requests for "/<items>/<id>"
- */
-type StockDTO struct {
-	Id string `json:"id"`
-
-	Name string    `json:"name"`
-	Type StockType `json:"type"`
-
-	ExpirationDate string `json:"expirationDate"`
-	MinQuantity    string `json:"minQuantity"`
-
-	Distributor string `json:"distributor"`
-}
-
-/*
  * Handler for GET /stock/<id>
- * 
+ *
  * Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
  * or an emptry response with status code 204 (if there is no such item in the warehouse).
  */
@@ -149,15 +134,15 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 
 /*
  * Handler for POST /stock/
- * 
+ *
  * Adds an item to the warehouse.
  */
 func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		newItem = &StockDTO{}
+		newItem = &NewStockDTO{}
 
 		decoder = json.NewDecoder(r.Body)
-		err = decoder.Decode(newItem)
+		err     = decoder.Decode(newItem)
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -166,11 +151,8 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	log.Println(newItem)
-
-	stockItem, err := NewStock(newItem.Type, newItem.Name)
+	stockItem, err := NewStock(newItem.Type, newItem)
 	m.wh.Add(stockItem)
-	
-	log.Println(m.wh)
-	// todo - test it properly.
+
+	w.WriteHeader(http.StatusCreated)
 }
