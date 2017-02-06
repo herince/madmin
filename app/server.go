@@ -53,7 +53,7 @@ type CollectionResponse struct {
 func (m *MAdminHandler) stockRequestsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		m.stockListHandler(w, r)
+		m.stockListHandler(w, r) // todo rename
 	case "POST":
 		m.addStockHandler(w, r)
 	}
@@ -160,5 +160,7 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	id := m.wh.Add(stockItem)
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(id))
+	if _, err := w.Write([]byte(id)); err != nil {
+		log.Printf("Error while writing response: %s", err)
+	}
 }

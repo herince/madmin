@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"testing"
+	"io/ioutil"
 )
 
 func buildUrl(base, path string) string {
@@ -42,12 +43,13 @@ func TestAddStockPOSTRequest(t *testing.T) {
 				req.status, resp.StatusCode, req.body)
 		}
 
-		idBytes := make([]byte, 0, 20)
-		if n, err := resp.Body.Read(idBytes); n != 20 || err != nil {
-			t.Errorf("Error in response body: invalid ID size returned", n, err)
+		idBytes, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if len(idBytes) != 36 || err != nil {
+			t.Errorf("Error in response body: invalid ID size returned", idBytes, err)
 		}
 
-		if result, err := regexp.Match("....-..-..-..-......", idBytes); result != true || err != nil {
+		if result, err := regexp.Match("........-....-....-....-............", idBytes); result != true || err != nil {
 			t.Errorf("Error in response body: invalid ID format returned", result, err)
 		}
 	}
