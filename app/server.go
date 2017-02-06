@@ -152,7 +152,7 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	defer r.Body.Close()
 
 	stockItem, err := NewStock(newItem.Type, newItem)
-	if err != nil  {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error in creating stock item: %s", err)
 		return

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"regexp"
+	"testing"
 )
 
 func buildUrl(base, path string) string {
@@ -41,7 +41,7 @@ func TestAddStockPOSTRequest(t *testing.T) {
 			t.Errorf("Expected %d but got %d for adding stock with body: %s",
 				req.status, resp.StatusCode, req.body)
 		}
-		
+
 		idBytes := make([]byte, 0, 20)
 		if n, err := resp.Body.Read(idBytes); n != 20 || err != nil {
 			t.Errorf("Error in response body: invalid ID size returned", n, err)
