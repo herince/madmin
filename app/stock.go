@@ -71,17 +71,34 @@ type medicine struct {
 
 func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 	id, err := newUUID()
+	if err != nil {
+		return nil, err
+	}
 
 	v := reflect.ValueOf(*dto)
 
 	name := v.FieldByName("Name").String()
 
 	quantityString := v.FieldByName("MinQuantity").String()
-	quantity, err := decimal.NewFromString(quantityString)
+	var quantity decimal.Decimal
+	if quantityString != "" {
+		quantity, err = decimal.NewFromString(quantityString)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		quantity = decimal.New(0, 0)
+	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
-	layout := "2000-01-01T00:00:00.00Z"
+	if dateString == "" {
+		return nil, errors.New("No expiration date set for medicine")
+	}
+	layout := "2006-01-02T15:04:05.000Z"
 	date, err := time.Parse(layout, dateString)
+	if err != nil {
+		return nil, err
+	}
 
 	distributor := v.FieldByName("Distributor").String()
 
@@ -132,17 +149,34 @@ type feed struct {
 
 func NewFeed(dto *NewStockDTO) (*feed, error) {
 	id, err := newUUID()
+	if err != nil {
+		return nil, err
+	}
 
 	v := reflect.ValueOf(*dto)
 
 	name := v.FieldByName("Name").String()
 
 	quantityString := v.FieldByName("MinQuantity").String()
-	quantity, err := decimal.NewFromString(quantityString)
+	var quantity decimal.Decimal
+	if quantityString != "" {
+		quantity, err = decimal.NewFromString(quantityString)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		quantity = decimal.New(0, 0)
+	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
-	layout := "2000-01-01T00:00:00.00Z"
+	if dateString == "" {
+		return nil, errors.New("No expiration date set for feed")
+	}
+	layout := "2006-01-02T15:04:05.000Z"
 	date, err := time.Parse(layout, dateString)
+	if err != nil {
+		return nil, err
+	}
 
 	distributor := v.FieldByName("Distributor").String()
 
@@ -192,17 +226,28 @@ type accessory struct {
 
 func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	id, err := newUUID()
+	if err != nil {
+		return nil, err
+	}
 
 	v := reflect.ValueOf(*dto)
 
 	name := v.FieldByName("Name").String()
 
 	quantityString := v.FieldByName("MinQuantity").String()
-	quantity, err := strconv.ParseInt(quantityString, 10, 64)
+	var quantity int64
+	if quantityString != "" {
+		quantity, err = strconv.ParseInt(quantityString, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
 	if dateString != "" {
-		err = errors.New("Error in creating stock item: Expiration date set for an accessory.")
+		if dateString != "" {
+			err = errors.New("Error in creating stock item: Expiration date set for an accessory.")
+		}
 	}
 
 	distributor := v.FieldByName("Distributor").String()

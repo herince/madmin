@@ -146,13 +146,19 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("Error in unmarchaling request body: %s", err)
+		log.Printf("Error in unmarshaling request body: %s", err)
 		return
 	}
 	defer r.Body.Close()
 
 	stockItem, err := NewStock(newItem.Type, newItem)
-	m.wh.Add(stockItem)
+	if err != nil  {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("Error in creating stock item: %s", err)
+		return
+	}
+	id := m.wh.Add(stockItem)
 
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(id))
 }
