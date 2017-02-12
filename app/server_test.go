@@ -3,11 +3,12 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"testing"
-	"io/ioutil"
 )
 
 func buildUrl(base, path string) string {
@@ -35,7 +36,7 @@ func TestAddStockPOSTRequest(t *testing.T) {
 
 		resp, err := http.Post(postUrl, "application/json", bytes.NewReader([]byte(req.body)))
 		if err != nil {
-			t.Fatalf("Error seding POST request: %s", err)
+			t.Fatalf("Error sending POST request: %s", err)
 		}
 
 		if resp.StatusCode != req.status {
@@ -46,11 +47,64 @@ func TestAddStockPOSTRequest(t *testing.T) {
 		idBytes, err := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		if len(idBytes) != 36 || err != nil {
-			t.Errorf("Error in response body: invalid ID size returned", idBytes, err)
+			t.Errorf("Error in response body. Invalid ID size returned. Got %d with error %s", len(idBytes), err)
 		}
 
 		if result, err := regexp.Match("........-....-....-....-............", idBytes); result != true || err != nil {
-			t.Errorf("Error in response body: invalid ID format returned", result, err)
+			t.Errorf("Error in response body: invalid ID format returned. Got % with error %s", result, err)
 		}
+	}
+}
+
+func TestValidRemoveStockDELETERequest(t *testing.T) {
+	var (
+		madminHandler = NewMAdminHandler()
+		s             = httptest.NewServer(madminHandler)
+	)
+	defer s.Close()
+
+	addReqest := struct {
+		path   string
+		body   string
+		status int
+	}{
+		"/data/stock/", `{"name": "Happy Doge","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated,
+	}
+
+	postUrl := buildUrl(s.URL, addReqest.path)
+
+	addResponse, err := http.Post(postUrl, "application/json", bytes.NewReader([]byte(addReqest.body)))
+	if err != nil {
+		t.Fatalf("Error sending POST request: %s", err)
+	}
+
+	idBytes, err := ioutil.ReadAll(addResponse.Body)
+	addResponse.Body.Close()
+	if len(idBytes) != 36 || err != nil {
+		t.Errorf("Error in adding new stock for the test. Invalid ID size returned. Got %d with error %s", len(idBytes), err)
+	}
+
+	var (
+		client http.Client
+
+		deleteRequestPath   = fmt.Sprintf("/data/stock/%s", idBytes)
+		deleteRequestStatus = http.StatusNoContent
+
+		deleteUrlString = buildUrl(s.URL, deleteRequestPath)
+	)
+	deleteRequestUrl, err := url.Parse(deleteUrlString)
+	if err != nil {
+		t.Fatalf("Error in building request URL. %s", err)
+	}
+
+	deleteRequest := &http.Request{Method: "DELETE", URL: deleteRequestUrl}
+	deleteResponse, err := client.Do(deleteRequest)
+	if err != nil {
+		t.Fatalf("Error sending DELETE request: %s", err)
+	}
+
+	if deleteResponse.StatusCode != deleteRequestStatus {
+		t.Errorf("Expected %d but got %d for deleting stock with id: %s",
+			deleteRequestStatus, deleteResponse.StatusCode, idBytes)
 	}
 }

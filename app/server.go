@@ -23,7 +23,7 @@ func Init(port string, handler http.Handler) {
 type MAdminHandler struct {
 	router *mux.Router
 
-	wh *Warehouse
+	wh *warehouse
 }
 
 func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -33,29 +33,40 @@ func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewMAdminHandler() *MAdminHandler {
 	madminHandler := &MAdminHandler{}
 
-	madminHandler.wh = &Warehouse{make(map[string]Stock)}
+	madminHandler.wh = NewWarehouse()
 
 	madminHandler.router = mux.NewRouter()
-	madminHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET")
-	madminHandler.router.HandleFunc("/data/stock/", madminHandler.stockRequestsHandler).Methods("GET", "POST")
+	madminHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET", "DELETE")
+	madminHandler.router.HandleFunc("/data/stock/", madminHandler.stockHandler).Methods("GET", "POST")
 
 	return madminHandler
 }
 
-/*
- * JSON format for the GET requests for "/<items>/"
- */
-type CollectionResponse struct {
-	Info string   `json:"info"`
-	Urls []string `json:"urls"`
+func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	fmt.Fprintf(w, "Error in request method. Method not allowed - %d", r.Method)
+	return
 }
 
-func (m *MAdminHandler) stockRequestsHandler(w http.ResponseWriter, r *http.Request) {
+func (m *MAdminHandler) stockHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		m.stockListHandler(w, r) // todo rename
+		m.listStockHandler(w, r)
 	case "POST":
 		m.addStockHandler(w, r)
+	default:
+		respondMethodNotAllowed(w, r)
+	}
+}
+
+func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		m.getStockItemHandler(w, r)
+	case "DELETE":
+		m.removeStockItemHandler(w, r)
+	default:
+		respondMethodNotAllowed(w, r)
 	}
 }
 
@@ -64,14 +75,14 @@ func (m *MAdminHandler) stockRequestsHandler(w http.ResponseWriter, r *http.Requ
  *
  * Lists existing stock items.
  */
-func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request) {
+func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		resp = &CollectionResponse{"List of existing stock items", make([]string, 0, len(m.wh.Stock))}
+		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
 
 		itemUrl string
 	)
 
-	for _, item := range m.wh.Stock {
+	for _, item := range m.wh.Stock() {
 		itemUrl = fmt.Sprintf("/data/stock/%s", item.Name())
 		resp.Urls = append(resp.Urls, itemUrl)
 	}
@@ -95,12 +106,12 @@ func (m *MAdminHandler) stockListHandler(w http.ResponseWriter, r *http.Request)
  * Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
  * or an emptry response with status code 204 (if there is no such item in the warehouse).
  */
-func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
+func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
 		_, id = path.Split(query.String())
 
-		item, ok = m.wh.Stock[id]
+		item, ok = m.wh.Get(id)
 	)
 	if !ok {
 		w.Header().Add("ContentLength", "0")
@@ -163,4 +174,13 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	if _, err := w.Write([]byte(id)); err != nil {
 		log.Printf("Error while writing response: %s", err)
 	}
+}
+
+/*
+ * Handler for DELETE /stock/<id>
+ *
+ * Removes the item with <id> from the warehouse.
+ */
+func (m *MAdminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
+	// 	w.WriteHeader(http.StatusNoContent)
 }

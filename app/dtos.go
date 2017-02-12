@@ -1,6 +1,14 @@
 package app
 
 /*
+ * JSON format for the GET requests for "/<items>/"
+ */
+type CollectionResponseDTO struct {
+	Info string   `json:"info"`
+	Urls []string `json:"urls"`
+}
+
+/*
  * JSON format for the GET requests for "/<items>/<id>"
  */
 type StockDTO struct {

@@ -1,15 +1,57 @@
 package app
 
-type Warehouse struct {
-	Stock map[string]Stock
+import "sync"
+
+type warehouse struct {
+	stock map[string]Stock
+
+	sync.RWMutex
 }
 
-func (wh *Warehouse) Add(item Stock) string {
-	wh.Stock[item.Id()] = item
+func NewWarehouse() *warehouse {
+	return &warehouse{stock: make(map[string]Stock)}
+}
+
+func (wh *warehouse) Add(item Stock) string {
+	wh.Lock()
+	wh.stock[item.Id()] = item
+	wh.Unlock()
+
 	return item.Id()
 }
-func (wh *Warehouse) Remove(item Stock) (string) {
-	id := item.Id()
-	delete(wh.Stock, id)
-	return id
+func (wh *warehouse) Get(id string) (item Stock, ok bool) {
+	wh.RLock()
+	item, ok = wh.stock[id]
+	wh.RUnlock()
+
+	return
+}
+func (wh *warehouse) Remove(item Stock) (id string) {
+	wh.Lock()
+	id = item.Id()
+	delete(wh.stock, id)
+	wh.Unlock()
+
+	return
+}
+
+/*
+ * Returns a map with the items in the warehouse with ids as keys and stock items as their values.
+ */
+func (wh *warehouse) Stock() (stock map[string]Stock) {
+	stock = make(map[string]Stock)
+	wh.RLock()
+	for key, value := range wh.stock {
+		stock[key] = value
+	}
+	wh.RUnlock()
+
+	return
+}
+
+func (wh *warehouse) Size() int {
+	wh.RLock()
+	defer wh.RUnlock()
+
+	return len(wh.stock)
 }
