@@ -19,6 +19,7 @@ func (wh *warehouse) Add(item Stock) string {
 
 	return item.Id()
 }
+
 func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 	wh.RLock()
 	item, ok = wh.stock[id]
@@ -26,13 +27,14 @@ func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 
 	return
 }
-func (wh *warehouse) Remove(item Stock) (id string) {
+
+/*
+ * Removes the item with the given id from the warehouse.
+ */
+func (wh *warehouse) Remove(id string) {
 	wh.Lock()
-	id = item.Id()
 	delete(wh.stock, id)
 	wh.Unlock()
-
-	return
 }
 
 /*
@@ -49,9 +51,10 @@ func (wh *warehouse) Stock() (stock map[string]Stock) {
 	return
 }
 
-func (wh *warehouse) Size() int {
+func (wh *warehouse) Size() (size int) {
 	wh.RLock()
-	defer wh.RUnlock()
+	size = len(wh.stock)
+	wh.RUnlock()
 
-	return len(wh.stock)
+	return
 }

@@ -182,5 +182,10 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
  * Removes the item with <id> from the warehouse.
  */
 func (m *MAdminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
-	// 	w.WriteHeader(http.StatusNoContent)
+	var (
+		query = r.URL
+		_, id = path.Split(query.String())
+	)
+	m.wh.Remove(id)
+	w.WriteHeader(http.StatusNoContent)
 }
