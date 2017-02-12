@@ -128,7 +128,7 @@ func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		resp.ExpirationDate = item.ExpirationDate().String()
 	}
 	resp.MinQuantity = item.MinQuantity().String()
-	resp.Distributor = item.Distributor()
+	resp.Distributor = string(item.Distributor())
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {

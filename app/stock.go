@@ -38,8 +38,8 @@ type Stock interface {
 	MinQuantity() decimal.Decimal
 	SetMinQuantity(decimal.Decimal)
 
-	Distributor() string
-	SetDistributor(distributor string)
+	Distributor() Distributor
+	SetDistributor(distributor Distributor)
 }
 
 // NewStock creates an unexpirable Stock object with the most basic needed information
@@ -66,7 +66,7 @@ type medicine struct {
 	name           string
 	minQuantity    decimal.Decimal
 	expirationDate time.Time
-	distributor    string
+	distributor    Distributor
 }
 
 func NewMedicine(dto *NewStockDTO) (*medicine, error) {
@@ -100,7 +100,8 @@ func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 		return nil, err
 	}
 
-	distributor := v.FieldByName("Distributor").String()
+	distributorName := v.FieldByName("Distributor").String()
+	distributor := Distributor(distributorName)
 
 	return &medicine{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}, err
 }
@@ -132,11 +133,11 @@ func (m medicine) MinQuantity() decimal.Decimal {
 func (m medicine) SetMinQuantity(quantity decimal.Decimal) {
 	m.minQuantity = quantity
 }
-func (m medicine) Distributor() string {
+func (m medicine) Distributor() Distributor {
 	return m.distributor
 }
-func (m medicine) SetDistributor(distributor string) {
-	m.distributor = distributor
+func (m medicine) SetDistributor(d Distributor) {
+	m.distributor = d
 }
 
 type feed struct {
@@ -144,7 +145,7 @@ type feed struct {
 	name           string
 	expirationDate time.Time
 	minQuantity    decimal.Decimal
-	distributor    string
+	distributor    Distributor
 }
 
 func NewFeed(dto *NewStockDTO) (*feed, error) {
@@ -178,7 +179,8 @@ func NewFeed(dto *NewStockDTO) (*feed, error) {
 		return nil, err
 	}
 
-	distributor := v.FieldByName("Distributor").String()
+	distributorName := v.FieldByName("Distributor").String()
+	distributor := Distributor(distributorName)
 
 	return &feed{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}, err
 }
@@ -210,18 +212,18 @@ func (f feed) MinQuantity() decimal.Decimal {
 func (f feed) SetMinQuantity(quantity decimal.Decimal) {
 	f.minQuantity = quantity
 }
-func (f feed) Distributor() string {
+func (f feed) Distributor() Distributor {
 	return f.distributor
 }
-func (f feed) SetDistributor(distributor string) {
-	f.distributor = distributor
+func (f feed) SetDistributor(d Distributor) {
+	f.distributor = d
 }
 
 type accessory struct {
 	id          string
 	name        string
 	minQuantity int64
-	distributor string
+	distributor Distributor
 }
 
 func NewAccessory(dto *NewStockDTO) (*accessory, error) {
@@ -250,7 +252,8 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 		}
 	}
 
-	distributor := v.FieldByName("Distributor").String()
+	distributorName := v.FieldByName("Distributor").String()
+	distributor := Distributor(distributorName)
 
 	return &accessory{id: id, name: name, minQuantity: quantity, distributor: distributor}, err
 }
@@ -280,9 +283,9 @@ func (a accessory) MinQuantity() decimal.Decimal {
 func (a accessory) SetMinQuantity(quantity decimal.Decimal) {
 	a.minQuantity = quantity.IntPart()
 }
-func (a accessory) Distributor() string {
+func (a accessory) Distributor() Distributor {
 	return a.distributor
 }
-func (a accessory) SetDistributor(distributor string) {
-	a.distributor = distributor
+func (a accessory) SetDistributor(d Distributor) {
+	a.distributor = d
 }
