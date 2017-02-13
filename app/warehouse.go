@@ -28,18 +28,14 @@ func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 	return
 }
 
-/*
- * Removes the item with the given id from the warehouse.
- */
+// Removes the item with the given id from the warehouse.
 func (wh *warehouse) Remove(id string) {
 	wh.Lock()
 	delete(wh.stock, id)
 	wh.Unlock()
 }
 
-/*
- * Returns a map with the items in the warehouse with ids as keys and stock items as their values.
- */
+// Returns a map with the items in the warehouse with ids as keys and stock items as their values.
 func (wh *warehouse) Stock() (stock map[string]Stock) {
 	stock = make(map[string]Stock)
 	wh.RLock()

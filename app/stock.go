@@ -16,6 +16,8 @@ const (
 	ACCESSORY
 )
 
+// StockTyper is an interface that wraps the StockType method.
+// StockType returns the type of a Stock object
 type StockTyper interface {
 	StockType() stockType
 }
@@ -42,11 +44,10 @@ type Stock interface {
 	SetDistributor(distributor Distributor)
 }
 
-// NewStock creates an unexpirable Stock object with the most basic needed information
-func NewStock(t stockType,
-	dto *NewStockDTO) (Stock, error) {
+// NewStock creates a new valid Stock object.
+func NewStock(dto *NewStockDTO) (Stock, error) {
 
-	switch t {
+	switch dto.Type {
 	case MEDICINE:
 		m, err := NewMedicine(dto)
 		return m, err
@@ -57,7 +58,7 @@ func NewStock(t stockType,
 		a, err := NewAccessory(dto)
 		return a, err
 	default:
-		return nil, errors.New("Invalid stock type")
+		return nil, errors.New("Invalid stock type.")
 	}
 }
 

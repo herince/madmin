@@ -1,3 +1,5 @@
+// Package madmin/app implements the back-end logic for the vet pharmacy administrating system.
+// It implements a simple RESTful API that manages somehow the vet pharmacy warehouse.
 package app
 
 import (
@@ -10,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Initialization function of the app. For now it only runs the server on the given port.
 func Init(port string, handler http.Handler) {
 	madminHandler := NewMAdminHandler()
 	http.Handle("/data/", madminHandler)
@@ -70,11 +73,9 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-/*
- * Handler for GET /stock/
- *
- * Lists existing stock items.
- */
+// Handler for GET /stock/
+// 
+// Lists existing stock items.
 func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
@@ -100,12 +101,10 @@ func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-/*
- * Handler for GET /stock/<id>
- *
- * Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
- * or an emptry response with status code 204 (if there is no such item in the warehouse).
- */
+// Handler for GET /stock/<id>
+// 
+// Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
+// or an emptry response with status code 204 (if there is no such item in the warehouse).
 func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
@@ -143,11 +142,9 @@ func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-/*
- * Handler for POST /stock/
- *
- * Adds an item to the warehouse.
- */
+// Handler for POST /stock/
+// 
+// Adds an item to the warehouse.
 func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		newItem = &NewStockDTO{}
@@ -162,7 +159,7 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	stockItem, err := NewStock(newItem.Type, newItem)
+	stockItem, err := NewStock(newItem)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error in creating stock item: %s", err)
@@ -176,11 +173,9 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-/*
- * Handler for DELETE /stock/<id>
- *
- * Removes the item with <id> from the warehouse.
- */
+// Handler for DELETE /stock/<id>
+// 
+// Removes the item with <id> from the warehouse.
 func (m *MAdminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
