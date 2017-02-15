@@ -1,10 +1,10 @@
 package app
 
 import (
-	"net/http"
 	"encoding/base64"
-	"strings"
 	"errors"
+	"net/http"
+	"strings"
 )
 
 func authMiddleware(handler http.Handler) http.Handler {
@@ -27,7 +27,7 @@ func authMiddleware(handler http.Handler) http.Handler {
 				writeStatusUnauthorized(w, r)
 			}
 		}
-  })
+	})
 }
 
 func decodeAuthHeader(authString string) (name string, password string, err error) {
