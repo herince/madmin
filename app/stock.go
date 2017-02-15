@@ -45,7 +45,7 @@ type Stock interface {
 }
 
 // NewStock creates a new valid Stock object.
-func NewStock(dto *newStockDTO) (Stock, error) {
+func NewStock(dto *NewStockDTO) (Stock, error) {
 
 	switch dto.Type {
 	case MEDICINE:
@@ -70,7 +70,7 @@ type medicine struct {
 	distributor    Distributor
 }
 
-func NewMedicine(dto *newStockDTO) (*medicine, error) {
+func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ type feed struct {
 	distributor    Distributor
 }
 
-func NewFeed(dto *newStockDTO) (*feed, error) {
+func NewFeed(dto *NewStockDTO) (*feed, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
@@ -227,7 +227,7 @@ type accessory struct {
 	distributor Distributor
 }
 
-func NewAccessory(dto *newStockDTO) (*accessory, error) {
+func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err

@@ -84,7 +84,7 @@ func (m *madminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 // Lists existing stock items.
 func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		resp = &collectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
+		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
 
 		itemUrl string
 	)
@@ -124,7 +124,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	resp := &stockDTO{}
+	resp := &StockDTO{}
 
 	resp.Id = item.Id()
 	resp.Name = item.Name()
@@ -153,7 +153,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 // Adds an item to the warehouse.
 func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		newItem = &newStockDTO{}
+		newItem = &NewStockDTO{}
 
 		decoder = json.NewDecoder(r.Body)
 		err     = decoder.Decode(newItem)
