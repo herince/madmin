@@ -1,13 +1,13 @@
 package app
 
 // JSON format for the GET requests for "/<items>/"
-type CollectionResponseDTO struct {
+type collectionResponseDTO struct {
 	Info string   `json:"info"`
 	Urls []string `json:"urls"`
 }
 
 // JSON format for the GET requests for "/<items>/<id>"
-type StockDTO struct {
+type stockDTO struct {
 	Id string `json:"id"`
 
 	Name string    `json:"name"`
@@ -21,7 +21,7 @@ type StockDTO struct {
 
 // New stock items' JSON format
 // IDs of new stock objects should be handled only by the back-end
-type NewStockDTO struct {
+type newStockDTO struct {
 	Name string    `json:"name"`
 	Type stockType `json:"type"`
 

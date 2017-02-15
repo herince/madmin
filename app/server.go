@@ -12,9 +12,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Initialization function of the app. For now it only runs the server on the given port.
+// Init function of the app. For now it only runs the server on the given port.
 func Init(port string, handler http.Handler) {
-	madminHandler := NewMAdminHandler()
+	// urls for authentications API
+	tokenHandler := newTokenHandler()
+	http.Handle("/auth/", tokenHandler)
+
+	// urls for warehouse management API
+	madminHandler := newMAdminHandler()
 	http.Handle("/data/", madminHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("static/")))
@@ -23,7 +28,7 @@ func Init(port string, handler http.Handler) {
 	http.ListenAndServe(port, nil)
 }
 
-type MAdminHandler struct {
+type mAdminHandler struct {
 	router *mux.Router
 
 	wh *warehouse
@@ -33,12 +38,13 @@ func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.router.ServeHTTP(w, r)
 }
 
-func NewMAdminHandler() *MAdminHandler {
+func newMAdminHandler() *MAdminHandler {
 	madminHandler := &MAdminHandler{}
 
 	madminHandler.wh = NewWarehouse()
 
 	madminHandler.router = mux.NewRouter()
+
 	madminHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET", "DELETE")
 	madminHandler.router.HandleFunc("/data/stock/", madminHandler.stockHandler).Methods("GET", "POST")
 
@@ -74,11 +80,11 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // Handler for GET /stock/
-// 
+//
 // Lists existing stock items.
 func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
+		resp = &collectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
 
 		itemUrl string
 	)
@@ -102,7 +108,7 @@ func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // Handler for GET /stock/<id>
-// 
+//
 // Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
 // or an emptry response with status code 204 (if there is no such item in the warehouse).
 func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +124,7 @@ func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	resp := &StockDTO{}
+	resp := &stockDTO{}
 
 	resp.Id = item.Id()
 	resp.Name = item.Name()
@@ -143,11 +149,11 @@ func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // Handler for POST /stock/
-// 
+//
 // Adds an item to the warehouse.
 func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		newItem = &NewStockDTO{}
+		newItem = &newStockDTO{}
 
 		decoder = json.NewDecoder(r.Body)
 		err     = decoder.Decode(newItem)
@@ -174,7 +180,7 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // Handler for DELETE /stock/<id>
-// 
+//
 // Removes the item with <id> from the warehouse.
 func (m *MAdminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
