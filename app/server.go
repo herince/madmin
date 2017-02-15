@@ -28,27 +28,27 @@ func Init(port string, handler http.Handler) {
 	http.ListenAndServe(port, nil)
 }
 
-type mAdminHandler struct {
+type madminHandler struct {
 	router *mux.Router
 
 	wh *warehouse
 }
 
-func (m *MAdminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.router.ServeHTTP(w, r)
 }
 
-func newMAdminHandler() *MAdminHandler {
-	madminHandler := &MAdminHandler{}
+func newMAdminHandler() *madminHandler {
+	maHandler := &madminHandler{}
 
-	madminHandler.wh = NewWarehouse()
+	maHandler.wh = NewWarehouse()
 
-	madminHandler.router = mux.NewRouter()
+	maHandler.router = mux.NewRouter()
 
-	madminHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", madminHandler.stockItemHandler).Methods("GET", "DELETE")
-	madminHandler.router.HandleFunc("/data/stock/", madminHandler.stockHandler).Methods("GET", "POST")
+	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE")
+	maHandler.router.HandleFunc("/data/stock/", maHandler.stockHandler).Methods("GET", "POST")
 
-	return madminHandler
+	return maHandler
 }
 
 func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +57,7 @@ func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (m *MAdminHandler) stockHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) stockHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		m.listStockHandler(w, r)
@@ -68,7 +68,7 @@ func (m *MAdminHandler) stockHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		m.getStockItemHandler(w, r)
@@ -82,7 +82,7 @@ func (m *MAdminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 // Handler for GET /stock/
 //
 // Lists existing stock items.
-func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		resp = &collectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
 
@@ -111,7 +111,7 @@ func (m *MAdminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 //
 // Returns JSON with data for the stock item with the given id (if such item exists in the warehouse)
 // or an emptry response with status code 204 (if there is no such item in the warehouse).
-func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
 		_, id = path.Split(query.String())
@@ -151,7 +151,7 @@ func (m *MAdminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 // Handler for POST /stock/
 //
 // Adds an item to the warehouse.
-func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		newItem = &newStockDTO{}
 
@@ -182,7 +182,7 @@ func (m *MAdminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 // Handler for DELETE /stock/<id>
 //
 // Removes the item with <id> from the warehouse.
-func (m *MAdminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
+func (m *madminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		query = r.URL
 		_, id = path.Split(query.String())
