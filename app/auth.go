@@ -1,48 +1,65 @@
 package app
 
 import (
-	"time"
 	"net/http"
-
-	"github.com/gorilla/mux"
-	"github.com/dgrijalva/jwt-go"
+	"encoding/base64"
+	"strings"
+	"errors"
 )
 
-// global string for the secret
-var signingKey = []byte("secret")
+func authMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-func newTokenHandler() *tokenHandler {
-	th := &tokenHandler{}
+		authString := r.Header.Get("Authorization")
+		if len(authString) == 0 {
+			writeStatusUnauthorized(w, r)
+		} else {
+			name, password, err := decodeAuthHeader(authString)
+			if err != nil {
+				writeStatusUnauthorized(w, r)
+			}
 
-	th.router = mux.NewRouter()
+			isValidUser := validateUser(name, password)
 
-	th.router.HandleFunc("/auth/get-token", th.getTokenHandler).Methods("GET")
-
-	return th
+			if isValidUser {
+				handler.ServeHTTP(w, r)
+			} else {
+				writeStatusUnauthorized(w, r)
+			}
+		}
+  })
 }
 
-type tokenHandler struct {
-	router *mux.Router
+func decodeAuthHeader(authString string) (name string, password string, err error) {
+	if !strings.HasPrefix(authString, "Basic ") {
+		err = errors.New("Invalid authorization header: unknown authorization scheme.")
+		return
+	}
+
+	encodedPart := authString[6:]
+
+	credentials, err := base64.StdEncoding.DecodeString(encodedPart)
+	if err != nil {
+		return
+	}
+
+	userData := strings.SplitN(string(credentials), ":", 2)
+	if len(userData) < 2 {
+		err = errors.New("Invalid authorization header: bad user password format.")
+		return
+	}
+
+	name = userData[0]
+	password = userData[1]
+
+	return
 }
 
-func (t *tokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	t.ServeHTTP(w, r)
+func validateUser(name, password string) bool {
+	return true
 }
 
-func (th *tokenHandler) getTokenHandler(w http.ResponseWriter, r *http.Request) {
-	// 	new token
-    token := jwt.New(jwt.SigningMethodHS256)
-
-	// a map to store the claims
-    claims := token.Claims.(jwt.MapClaims)
-
-	// set token claims 
-    claims["admin"] = true
-    claims["name"] = "asdf"
-    claims["exp"] = time.Now().Add(time.Hour).Unix()
-
-	// sign the token with the secret 
-    tokenString, _ := token.SignedString(signingKey)
-
-    w.Write([]byte(tokenString))
+func writeStatusUnauthorized(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("WWW-Authenticate", "Basic realm=\"mira administrator\"")
+	w.WriteHeader(http.StatusUnauthorized)
 }

@@ -14,15 +14,11 @@ import (
 
 // Init function of the app. For now it only runs the server on the given port.
 func Init(port string, handler http.Handler) {
-	// urls for authentications API
-	tokenHandler := newTokenHandler()
-	http.Handle("/auth/", tokenHandler)
-
 	// urls for warehouse management API
 	madminHandler := newMAdminHandler()
-	http.Handle("/data/", madminHandler)
+	http.Handle("/data/", authMiddleware(madminHandler))
 
-	http.Handle("/", http.FileServer(http.Dir("static/")))
+	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/"))))
 
 	log.Println("Listening...")
 	http.ListenAndServe(port, nil)
