@@ -1,4 +1,7 @@
 # madmin
+
+[![GoDoc](https://godoc.org/github.com/herince/madmin/app?status.svg)](https://godoc.org/github.com/herince/madmin/app)
+
 This project is supposed to be a data management system for a vet pharmacy at some point...
 
 ## Documentation - TBD

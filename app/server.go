@@ -3,6 +3,7 @@
 package app
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -27,7 +28,8 @@ func Init(port string, handler http.Handler) {
 type madminHandler struct {
 	router *mux.Router
 
-	wh *warehouse
+	warehouse *warehouse
+	database  *sql.DB
 }
 
 func (m *madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +39,8 @@ func (m *madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func newMAdminHandler() *madminHandler {
 	maHandler := &madminHandler{}
 
-	maHandler.wh = NewWarehouse()
+	maHandler.database = newDB()
+	maHandler.warehouse = NewWarehouse(maHandler.database)
 
 	maHandler.router = mux.NewRouter()
 
@@ -74,12 +77,12 @@ func (m *madminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 // Lists existing stock items.
 func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.wh.Size())}
+		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.warehouse.Size())}
 
 		itemUrl string
 	)
 
-	for _, item := range m.wh.Stock() {
+	for _, item := range m.warehouse.Stock() {
 		itemUrl = fmt.Sprintf("/data/stock/%s", item.Name())
 		resp.Urls = append(resp.Urls, itemUrl)
 	}
@@ -106,7 +109,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		query = r.URL
 		_, id = path.Split(query.String())
 
-		item, ok = m.wh.Get(id)
+		item, ok = m.warehouse.Get(id)
 	)
 	if !ok {
 		w.Header().Add("ContentLength", "0")
@@ -155,13 +158,13 @@ func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	stockItem, err := CreateStock(newItem)
+	stockItem, err := NewStock(newItem)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error in creating stock item: %s", err)
 		return
 	}
-	id := m.wh.Add(stockItem)
+	id := m.warehouse.Add(stockItem)
 
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(id)); err != nil {
@@ -177,6 +180,6 @@ func (m *madminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Re
 		query = r.URL
 		_, id = path.Split(query.String())
 	)
-	m.wh.Remove(id)
+	m.warehouse.Remove(id)
 	w.WriteHeader(http.StatusNoContent)
 }

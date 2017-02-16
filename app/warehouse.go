@@ -1,21 +1,38 @@
 package app
 
-import "sync"
+import "database/sql"
 
-type warehouse struct {}
-
-func NewWarehouse() *warehouse {
-	return &warehouse{}
+type warehouse struct {
+	database *sql.DB
 }
 
+func NewWarehouse(database *sql.DB) *warehouse {
+	return &warehouse{database: database}
+}
+
+// Database methods for stock items
+// insert in DB
+func CreateItem(item Stock) {}
+
+// read from DB
+func ReadItem(id string) (Stock, bool) {
+	return nil, false
+}
+
+// update in DB
+func UpdateItem(item Stock) {}
+
+// remove from DB
+func DeleteItem(id string) {}
+
 func (wh *warehouse) Add(item Stock) string {
-	item.Create()
+	item.Create(wh.database)
 
 	return item.Id()
 }
 
 func (wh *warehouse) Get(id string) (item Stock, ok bool) {
-	item, ok = item.Read(id)
+	item, ok = item.Read(wh.database, id)
 
 	return
 }
@@ -23,7 +40,7 @@ func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 // Removes the item with the given id from the warehouse.
 func (wh *warehouse) Remove(id string) {
 	stock := &defaultStock{id: id}
-	stock.Delete()
+	stock.Delete(wh.database)
 }
 
 // Returns a map with the items in the warehouse with ids as keys and stock items as their values.
