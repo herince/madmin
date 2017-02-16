@@ -12,18 +12,18 @@ func NewWarehouse(database *sql.DB) *warehouse {
 
 // Database methods for stock items
 // insert in DB
-func CreateItem(item Stock) {}
+func (wh *warehouse)CreateItem(item Stock) {}
 
 // read from DB
-func ReadItem(id string) (Stock, bool) {
+func (wh *warehouse)ReadItem(id string) (Stock, bool) {
 	return nil, false
 }
 
 // update in DB
-func UpdateItem(item Stock) {}
+func (wh *warehouse)UpdateItem(item Stock) {}
 
 // remove from DB
-func DeleteItem(id string) {}
+func (wh *warehouse)DeleteItem(id string) {}
 
 func (wh *warehouse) Add(item Stock) string {
 	item.Create(wh.database)
