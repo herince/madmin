@@ -9,12 +9,12 @@ type warehouse struct {
 }
 
 func NewWarehouse() *warehouse {
-	return &warehouse{stock: make(map[string]Stock)}
+	return &warehouse{}
 }
 
 func (wh *warehouse) Add(item Stock) string {
 	wh.Lock()
-	wh.stock[item.Id()] = item
+	item.Create()
 	wh.Unlock()
 
 	return item.Id()
@@ -22,7 +22,7 @@ func (wh *warehouse) Add(item Stock) string {
 
 func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 	wh.RLock()
-	item, ok = wh.stock[id]
+	item, ok = item.Read(id)
 	wh.RUnlock()
 
 	return
@@ -31,7 +31,8 @@ func (wh *warehouse) Get(id string) (item Stock, ok bool) {
 // Removes the item with the given id from the warehouse.
 func (wh *warehouse) Remove(id string) {
 	wh.Lock()
-	delete(wh.stock, id)
+	stock := &defaultStock{id: id}
+	stock.Delete()
 	wh.Unlock()
 }
 
@@ -39,9 +40,9 @@ func (wh *warehouse) Remove(id string) {
 func (wh *warehouse) Stock() (stock map[string]Stock) {
 	stock = make(map[string]Stock)
 	wh.RLock()
-	for key, value := range wh.stock {
-		stock[key] = value
-	}
+	// 	for key, value := range wh.stock {
+	// 		stock[key] = value
+	// 	}
 	wh.RUnlock()
 
 	return
@@ -49,7 +50,7 @@ func (wh *warehouse) Stock() (stock map[string]Stock) {
 
 func (wh *warehouse) Size() (size int) {
 	wh.RLock()
-	size = len(wh.stock)
+	// 	size = len(wh.stock)
 	wh.RUnlock()
 
 	return

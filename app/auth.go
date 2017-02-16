@@ -12,11 +12,11 @@ func authMiddleware(handler http.Handler) http.Handler {
 
 		authString := r.Header.Get("Authorization")
 		if len(authString) == 0 {
-			writeStatusUnauthorized(w, r)
+			respondStatusUnauthorized(w, r)
 		} else {
 			name, password, err := decodeAuthHeader(authString)
 			if err != nil {
-				writeStatusUnauthorized(w, r)
+				respondStatusUnauthorized(w, r)
 			}
 
 			isValidUser := validateUser(name, password)
@@ -24,7 +24,7 @@ func authMiddleware(handler http.Handler) http.Handler {
 			if isValidUser {
 				handler.ServeHTTP(w, r)
 			} else {
-				writeStatusUnauthorized(w, r)
+				respondStatusUnauthorized(w, r)
 			}
 		}
 	})
@@ -59,7 +59,16 @@ func validateUser(name, password string) bool {
 	return true
 }
 
-func writeStatusUnauthorized(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("WWW-Authenticate", "Basic realm=\"mira administrator\"")
-	w.WriteHeader(http.StatusUnauthorized)
+type user struct {
+	id       string
+	name     string
+	password string
+}
+
+func NewUser(name, password string) (user, error) {
+	id, err := newUUID()
+	if err != nil {
+		return user{}, err
+	}
+	return user{id: id, name: name, password: password}, nil
 }

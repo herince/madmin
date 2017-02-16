@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/shopspring/decimal"
 	"reflect"
-	"strconv"
 	"time"
 )
 
@@ -42,32 +41,59 @@ type Stock interface {
 
 	Distributor() Distributor
 	SetDistributor(distributor Distributor)
+
+	// db-related methods
+	Create()
+	Read(id string) (Stock, bool)
+	Update()
+	Delete()
 }
 
-// NewStock creates a new valid Stock object.
-func NewStock(dto *NewStockDTO) (Stock, error) {
+// CreateStock creates a new valid Stock object.
+func CreateStock(dto *NewStockDTO) (Stock, error) {
 
 	switch dto.Type {
 	case MEDICINE:
 		m, err := NewMedicine(dto)
+		m.Create()
 		return m, err
 	case FEED:
 		f, err := NewFeed(dto)
+		f.Create()
 		return f, err
 	case ACCESSORY:
 		a, err := NewAccessory(dto)
+		a.Create()
 		return a, err
 	default:
 		return nil, errors.New("Invalid stock type.")
 	}
 }
 
-type medicine struct {
+type defaultStock struct {
 	id             string
 	name           string
 	minQuantity    decimal.Decimal
 	expirationDate time.Time
 	distributor    Distributor
+}
+
+// insert in DB
+func (ds *defaultStock) Create() {}
+
+// read from DB
+func (ds *defaultStock) Read(id string) (Stock, bool) {
+	return nil, false
+}
+
+// update in DB
+func (ds *defaultStock) Update() {}
+
+// remove from DB
+func (ds *defaultStock) Delete() {}
+
+type medicine struct {
+	defaultStock
 }
 
 func NewMedicine(dto *NewStockDTO) (*medicine, error) {
@@ -104,7 +130,7 @@ func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 	distributorName := v.FieldByName("Distributor").String()
 	distributor := Distributor(distributorName)
 
-	return &medicine{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}, err
+	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
 }
 
 func (m medicine) Id() string {
@@ -142,11 +168,7 @@ func (m medicine) SetDistributor(d Distributor) {
 }
 
 type feed struct {
-	id             string
-	name           string
-	expirationDate time.Time
-	minQuantity    decimal.Decimal
-	distributor    Distributor
+	defaultStock
 }
 
 func NewFeed(dto *NewStockDTO) (*feed, error) {
@@ -183,7 +205,7 @@ func NewFeed(dto *NewStockDTO) (*feed, error) {
 	distributorName := v.FieldByName("Distributor").String()
 	distributor := Distributor(distributorName)
 
-	return &feed{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}, err
+	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
 }
 
 func (f feed) Id() string {
@@ -221,10 +243,7 @@ func (f feed) SetDistributor(d Distributor) {
 }
 
 type accessory struct {
-	id          string
-	name        string
-	minQuantity int64
-	distributor Distributor
+	defaultStock
 }
 
 func NewAccessory(dto *NewStockDTO) (*accessory, error) {
@@ -238,12 +257,14 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	name := v.FieldByName("Name").String()
 
 	quantityString := v.FieldByName("MinQuantity").String()
-	var quantity int64
+	var quantity decimal.Decimal
 	if quantityString != "" {
-		quantity, err = strconv.ParseInt(quantityString, 10, 64)
+		quantity, err = decimal.NewFromString(quantityString)
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		quantity = decimal.New(0, 0)
 	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
@@ -256,7 +277,7 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	distributorName := v.FieldByName("Distributor").String()
 	distributor := Distributor(distributorName)
 
-	return &accessory{id: id, name: name, minQuantity: quantity, distributor: distributor}, err
+	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributor: distributor}}, err
 }
 
 func (a accessory) Id() string {
@@ -279,10 +300,10 @@ func (a accessory) ExpirationDate() time.Time {
 }
 func (a accessory) SetExpirationDate(time.Time) {}
 func (a accessory) MinQuantity() decimal.Decimal {
-	return decimal.New(a.minQuantity, 0)
+	return a.minQuantity
 }
 func (a accessory) SetMinQuantity(quantity decimal.Decimal) {
-	a.minQuantity = quantity.IntPart()
+	a.minQuantity = quantity
 }
 func (a accessory) Distributor() Distributor {
 	return a.distributor

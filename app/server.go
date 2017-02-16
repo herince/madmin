@@ -47,12 +47,6 @@ func newMAdminHandler() *madminHandler {
 	return maHandler
 }
 
-func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusMethodNotAllowed)
-	fmt.Fprintf(w, "Error in request method. Method not allowed - %d", r.Method)
-	return
-}
-
 func (m *madminHandler) stockHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
@@ -161,7 +155,7 @@ func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	stockItem, err := NewStock(newItem)
+	stockItem, err := CreateStock(newItem)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error in creating stock item: %s", err)

@@ -17,7 +17,7 @@ func buildUrl(base, path string) string {
 
 func TestAddStockPOSTRequest(t *testing.T) {
 	var (
-		madminHandler = NewMAdminHandler()
+		madminHandler = newMAdminHandler()
 		s             = httptest.NewServer(madminHandler)
 	)
 	defer s.Close()
@@ -58,7 +58,7 @@ func TestAddStockPOSTRequest(t *testing.T) {
 
 func TestValidRemoveStockDELETERequest(t *testing.T) {
 	var (
-		madminHandler = NewMAdminHandler()
+		madminHandler = newMAdminHandler()
 		s             = httptest.NewServer(madminHandler)
 	)
 	defer s.Close()
