@@ -1,7 +1,6 @@
 package app
 
 import (
-	"database/sql"
 	"errors"
 	"github.com/shopspring/decimal"
 	"reflect"
@@ -40,8 +39,8 @@ type Stock interface {
 	MinQuantity() decimal.Decimal
 	SetMinQuantity(decimal.Decimal)
 
-	Distributor() Distributor
-	SetDistributor(distributor Distributor)
+	Distributor() distributor
+	SetDistributor(d distributor)
 }
 
 // NewStock creates a new valid Stock object.
@@ -67,38 +66,38 @@ type defaultStock struct {
 	name           string
 	minQuantity    decimal.Decimal
 	expirationDate time.Time
-	distributor    Distributor
+	distributor    distributor
 }
 
 func (ds defaultStock) Id() string {
-	return f.id
+	return ds.id
 }
 func (ds defaultStock) Name() string {
-	return f.name
+	return ds.name
 }
-func (ds defaultStock) SetName(newName string) {
-	f.name = newName
+func (ds defaultStock) SetName(name string) {
+	ds.name = name
 }
 func (ds defaultStock) IsExpirable() bool {
 	return true
 }
 func (ds defaultStock) ExpirationDate() time.Time {
-	return f.expirationDate
+	return ds.expirationDate
 }
 func (ds defaultStock) SetExpirationDate(expirationDate time.Time) {
-	f.expirationDate = expirationDate
+	ds.expirationDate = expirationDate
 }
 func (ds defaultStock) MinQuantity() decimal.Decimal {
-	return f.minQuantity
+	return ds.minQuantity
 }
 func (ds defaultStock) SetMinQuantity(quantity decimal.Decimal) {
-	f.minQuantity = quantity
+	ds.minQuantity = quantity
 }
-func (ds defaultStock) Distributor() Distributor {
-	return f.distributor
+func (ds defaultStock) Distributor() distributor {
+	return ds.distributor
 }
-func (ds defaultStock) SetDistributor(d Distributor) {
-	f.distributor = d
+func (ds defaultStock) SetDistributor(d distributor) {
+	ds.distributor = d
 }
 
 type medicine struct {
@@ -137,9 +136,12 @@ func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 	}
 
 	distributorName := v.FieldByName("Distributor").String()
-	distributor := Distributor(distributorName)
+	distributor, err := NewDistributor(distributorName)
+	if err != nil {
+		return nil, err
+	}
 
-	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
+	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: *distributor}}, err
 }
 
 func (m medicine) Type() stockType {
@@ -182,9 +184,12 @@ func NewFeed(dto *NewStockDTO) (*feed, error) {
 	}
 
 	distributorName := v.FieldByName("Distributor").String()
-	distributor := Distributor(distributorName)
+	distributor, err := NewDistributor(distributorName)
+	if err != nil {
+		return nil, err
+	}
 
-	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
+	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: *distributor}}, err
 }
 
 func (f feed) Type() stockType {
@@ -224,9 +229,12 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	}
 
 	distributorName := v.FieldByName("Distributor").String()
-	distributor := Distributor(distributorName)
+	distributor, err := NewDistributor(distributorName)
+	if err != nil {
+		return nil, err
+	}
 
-	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributor: distributor}}, err
+	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributor: *distributor}}, err
 }
 
 func (a accessory) Type() stockType {

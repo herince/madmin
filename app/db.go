@@ -3,7 +3,6 @@ package app
 import (
 	"database/sql"
 
-	// 	"github.com/shopspring/decimal"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -14,7 +13,6 @@ func newDB() (db *sql.DB) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {

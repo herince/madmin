@@ -6,41 +6,77 @@ type warehouse struct {
 	database *sql.DB
 }
 
-func NewWarehouse(database *sql.DB) *warehouse {
-	return &warehouse{database: database}
+func NewWarehouse(db *sql.DB) *warehouse {
+	wh := &warehouse{database: db}
+
+	wh.initStockTable()
+	wh.initDistributorsTable()
+
+	return wh
+}
+
+func (wh *warehouse) initStockTable() {
+	stock_table := `
+	CREATE TABLE IF NOT EXISTS warehouse(
+		id BLOB NOT NULL PRIMARY KEY,
+		type TEXT NOT NULL,
+		name TEXT,
+		min_quantity REAL,
+		expiration_date TEXT,
+		distributor_id BLOB,
+		FOREIGN KEY (distributor_id) REFERENCES distributors (Id)
+	);
+	`
+
+	_, err := wh.database.Exec(stock_table)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (wh *warehouse) initDistributorsTable() {
+	distributors_table := `
+	CREATE TABLE IF NOT EXISTS distributors(
+		id BLOB NOT NULL PRIMARY KEY,
+		name TEXT
+	);
+	`
+
+	_, err := wh.database.Exec(distributors_table)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Database methods for stock items
 // insert in DB
-func (wh *warehouse)CreateItem(item Stock) {}
+func (wh *warehouse) createItem(item Stock) {}
 
 // read from DB
-func (wh *warehouse)ReadItem(id string) (Stock, bool) {
+func (wh *warehouse) readItem(id string) (Stock, bool) {
 	return nil, false
 }
 
 // update in DB
-func (wh *warehouse)UpdateItem(item Stock) {}
+func (wh *warehouse) updateItem(item Stock) {}
 
 // remove from DB
-func (wh *warehouse)DeleteItem(id string) {}
+func (wh *warehouse) deleteItem(id string) {}
 
 func (wh *warehouse) Add(item Stock) string {
-	item.Create(wh.database)
+	wh.createItem(item)
 
 	return item.Id()
 }
 
 func (wh *warehouse) Get(id string) (item Stock, ok bool) {
-	item, ok = item.Read(wh.database, id)
-
+	item, ok = wh.readItem(id)
 	return
 }
 
 // Removes the item with the given id from the warehouse.
 func (wh *warehouse) Remove(id string) {
-	stock := &defaultStock{id: id}
-	stock.Delete(wh.database)
+	wh.deleteItem(id)
 }
 
 // Returns a map with the items in the warehouse with ids as keys and stock items as their values.

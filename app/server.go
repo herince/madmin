@@ -8,25 +8,50 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"path"
+	"syscall"
 
 	"github.com/gorilla/mux"
 )
 
 // Init function of the app. For now it only runs the server on the given port.
 func Init(port string, handler http.Handler) {
+	database := newDB()
+
 	// urls for warehouse management API
-	madminHandler := newMAdminHandler()
-	http.Handle("/data/", authMiddleware(madminHandler))
+	maHandler := newMAdminHandler(database)
+	http.Handle("/data/", authMiddleware(maHandler))
 
 	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/"))))
 
+	// 	registerCleanUp(database)
+
 	log.Println("Listening...")
-	http.ListenAndServe(port, nil)
+	err := http.ListenAndServe(port, nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func registerCleanUp(db *sql.DB) {
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		for _ = range c {
+			// todo: gracefully shut down http server and close db
+			db.Close()
+
+			os.Exit(0)
+		}
+	}()
 }
 
 type madminHandler struct {
 	router *mux.Router
+
+	userManager *userManager
 
 	warehouse *warehouse
 	database  *sql.DB
@@ -36,10 +61,11 @@ func (m *madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.router.ServeHTTP(w, r)
 }
 
-func newMAdminHandler() *madminHandler {
+func newMAdminHandler(db *sql.DB) *madminHandler {
 	maHandler := &madminHandler{}
 
-	maHandler.database = newDB()
+	maHandler.database = db
+	maHandler.userManager = newUserManager(maHandler.database)
 	maHandler.warehouse = NewWarehouse(maHandler.database)
 
 	maHandler.router = mux.NewRouter()
@@ -126,7 +152,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		resp.ExpirationDate = item.ExpirationDate().String()
 	}
 	resp.MinQuantity = item.MinQuantity().String()
-	resp.Distributor = string(item.Distributor())
+	resp.Distributor = item.Distributor().Name()
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
