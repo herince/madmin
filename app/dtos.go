@@ -15,6 +15,8 @@ type StockDTO struct {
 	Name string    `json:"name"`
 	Type stockType `json:"type"`
 
+	Quantity string `json:"quantity"`
+
 	ExpirationDate string `json:"expirationDate"`
 	MinQuantity    string `json:"minQuantity"`
 
@@ -27,6 +29,8 @@ type StockDTO struct {
 type NewStockDTO struct {
 	Name string    `json:"name"`
 	Type stockType `json:"type"`
+
+	Quantity string `json:"quantity"`
 
 	ExpirationDate string `json:"expirationDate"`
 	MinQuantity    string `json:"minQuantity"`

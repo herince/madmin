@@ -16,10 +16,16 @@ func newUserManager(db *sql.DB) *userManager {
 
 func (um *userManager) initUsersTable() {
 	usersTable := `
-	CREATE TABLE IF NOT EXISTS users(
-		name TEXT NOT NULL PRIMARY KEY,
-		password TEXT NOT NULL,
-		salt BLOB NOT NULL
+	CREATE TABLE IF NOT EXISTS
+		users (
+			id
+				TEXT NOT NULL PRIMARY KEY,
+			name
+				TEXT NOT NULL,
+			password
+				TEXT NOT NULL,
+			salt
+				BLOB NOT NULL
 	);
 	`
 
@@ -29,12 +35,102 @@ func (um *userManager) initUsersTable() {
 	}
 }
 
-func (um *userManager) addUser(u User) {}
+func (um *userManager) createUser(u User) {
+	stmt, err := um.database.Prepare(`
+		INSERT INTO
+			users (
+				id,
+				name,
+				password,
+				salt)
+		VALUES(?, ?, ?, ?)
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
 
-func (um *userManager) readUser(name string) (User, bool) {
-	return defaultUser{}, false
+	_, err = stmt.Exec(
+		u.ID(),
+		u.Name(),
+		u.Password(),
+		u.Salt())
+	if err != nil {
+		panic(err)
+	}
 }
 
-func (um *userManager) updateUser(u User) {}
+func (um *userManager) readUser(id string) (User, bool) {
+	stmt, err := um.database.Prepare(`
+	SELECT
+		name,
+		password,
+		salt
+	FROM
+		users
+	WHERE
+		id = ?
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
 
-func (um *userManager) removeUser(name string) {}
+	u := defaultUser{id: id}
+	err = stmt.QueryRow(id).Scan(
+		&u.name,
+		&u.password,
+		&u.salt)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, false
+	case err != nil:
+		panic(err)
+	}
+
+	return u, true
+}
+
+func (um *userManager) updateUser(u User) {
+	stmt, err := um.database.Prepare(`
+	UPDATE
+		users
+	SET
+		name = ?,
+		password = ?,
+		salt = ?
+	WHERE
+		id = ?
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = stmt.Exec(
+		u.Name(),
+		u.Password(),
+		u.Salt(),
+		u.ID())
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (um *userManager) removeUser(id string) {
+	stmt, err := um.database.Prepare(`
+		DELETE FROM
+			users
+		WHERE
+			id = ?
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		panic(err)
+	}
+}

@@ -16,6 +16,8 @@ type User interface {
 	Password() string
 	SetPassword(string)
 	CheckPassword(string) bool
+
+	Salt() []byte
 }
 
 type defaultUser struct {
@@ -66,6 +68,10 @@ func (du defaultUser) SetPassword(password string) {
 func (du defaultUser) CheckPassword(password string) bool {
 	newPasswordHash := passwordHash(password, du.salt)
 	return du.password == newPasswordHash
+}
+
+func (du defaultUser) Salt () []byte {
+	return du.salt
 }
 
 func passwordHash(password string, salt []byte) string {

@@ -3,7 +3,6 @@ package app
 import (
 	"database/sql"
 	"log"
-	"fmt"
 )
 
 // Warehouse is a warehouse interface.
@@ -51,6 +50,7 @@ func (wh *dafaultWarehouse) initStockTable() {
 		id BLOB NOT NULL PRIMARY KEY,
 		type TEXT NOT NULL,
 		name TEXT,
+		quantity TEXT NOT NULL,
 		min_quantity TEXT,
 		expiration_date INTEGER,
 		distributor_id BLOB,
@@ -87,6 +87,7 @@ func (wh *dafaultWarehouse) CreateStock(item Stock) {
 				id,
 				type,
 				name,
+				quantity,
 				min_quantity,
 				expiration_date,
 				distributor_id)
@@ -101,6 +102,7 @@ func (wh *dafaultWarehouse) CreateStock(item Stock) {
 		item.ID(),
 		item.Type(),
 		item.Name(),
+		item.Quantity(),
 		item.MinQuantity(),
 		item.ExpirationDate().UnixNano(),
 		item.DistributorID())
@@ -115,6 +117,7 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 	SELECT
 		type,
 		name,
+		quantity,
 		min_quantity,
 		expiration_date,
 		distributor_id
@@ -132,7 +135,13 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 		stockItem = defaultStock{id: id}
 		sType int8
 	)
-	err = stmt.QueryRow(id).Scan(&sType, &stockItem.Name, &stockItem.MinQuantity, &stockItem.ExpirationDate, &stockItem.distributorID)
+	err = stmt.QueryRow(id).Scan(
+		&sType,
+		&stockItem.name,
+		&stockItem.quantity,
+		&stockItem.minQuantity,
+		&stockItem.expirationDate,
+		&stockItem.distributorID)
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, false
@@ -142,11 +151,11 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 
 	switch stockType(sType) {
 	case MEDICINE:
-		return medicine(stockItem), true
+		return medicine{stockItem}, true
 	case FEED:
-		return feed(stockItem), true
+		return feed{stockItem}, true
 	case ACCESSORY:
-		return accessory(stockItem), true
+		return accessory{stockItem}, true
 	default:
 		panic("invalid stock type in DB record")
 	}
@@ -162,6 +171,7 @@ func (wh *dafaultWarehouse) UpdateStock(item Stock) {
 	SET
 		type = ?,
 		name = ?,
+		quantity = ?,
 		min_quantity = ?,
 		expiration_date = ?,
 		distributor_id = ?
@@ -177,6 +187,7 @@ func (wh *dafaultWarehouse) UpdateStock(item Stock) {
 		item.ID(),
 		item.Type(),
 		item.Name(),
+		item.Quantity(),
 		item.MinQuantity(),
 		item.ExpirationDate().UnixNano(),
 		item.DistributorID())
@@ -306,6 +317,7 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 			id,
 			type,
 			name,
+			quantity,
 			min_quantity,
 			expiration_date,
 			distributor_id
@@ -325,15 +337,22 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 			stockItem = defaultStock{}
 			sType int8
 		)
-		err = rows.Scan(&stockItem.id, &sType, &stockItem.Name, &stockItem.MinQuantity, &stockItem.ExpirationDate, &stockItem.distributorID)
+		err = rows.Scan(
+			&stockItem.id,
+			&sType,
+			&stockItem.name,
+			&stockItem.quantity,
+			&stockItem.minQuantity,
+			&stockItem.expirationDate,
+			&stockItem.distributorID)
 
 		switch stockType(sType) {
 		case MEDICINE:
-			stock[stockItem.ID()] = medicine(stockItem)
+			stock[stockItem.ID()] = medicine{stockItem}
 		case FEED:
-			stock[stockItem.ID()] = feed(stockItem)
+			stock[stockItem.ID()] = feed{stockItem}
 		case ACCESSORY:
-			stock[stockItem.ID()] = accessory(stockItem)
+			stock[stockItem.ID()] = accessory{stockItem}
 		default:
 			panic("invalid stock type in DB record")
 		}

@@ -191,10 +191,10 @@ func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 		log.Printf("Error in creating stock item: %s", err)
 		return
 	}
-	id := m.warehouse.CreateStock(stockItem)
+	m.warehouse.CreateStock(stockItem)
 
 	w.WriteHeader(http.StatusCreated)
-	if _, err := w.Write([]byte(id)); err != nil {
+	if _, err := w.Write([]byte(stockItem.ID())); err != nil {
 		log.Printf("Error while writing response: %s", err)
 	}
 }

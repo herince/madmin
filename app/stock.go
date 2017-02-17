@@ -129,15 +129,27 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 
 	name := v.FieldByName("Name").String()
 
-	quantityString := v.FieldByName("MinQuantity").String()
-	var quantity decimal.Decimal
-	if quantityString != "" {
-		quantity, err = decimal.NewFromString(quantityString)
+	quantityString := v.FieldByName("Quantity").String()
+	if quantityString == "" {
+		return nil, errors.New("")
+	}
+
+	quantity, err := decimal.NewFromString(quantityString)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantity       decimal.Decimal
+	)
+	if minQuantityString != "" {
+		minQuantity, err = decimal.NewFromString(minQuantityString)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		quantity = decimal.New(0, 0)
+		minQuantity = decimal.New(0, 0)
 	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
@@ -152,7 +164,7 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 
 	distributorID := v.FieldByName("DistributorID").String()
 
-	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributorID: distributorID}}, err
+	return &medicine{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, expirationDate: date, distributorID: distributorID}}, err
 }
 
 func (m medicine) Type() stockType {
@@ -174,15 +186,27 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 
 	name := v.FieldByName("Name").String()
 
-	quantityString := v.FieldByName("MinQuantity").String()
-	var quantity decimal.Decimal
-	if quantityString != "" {
-		quantity, err = decimal.NewFromString(quantityString)
+	quantityString := v.FieldByName("Quantity").String()
+	if quantityString == "" {
+		return nil, errors.New("")
+	}
+
+	quantity, err := decimal.NewFromString(quantityString)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantity       decimal.Decimal
+	)
+	if minQuantityString != "" {
+		minQuantity, err = decimal.NewFromString(minQuantityString)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		quantity = decimal.New(0, 0)
+		minQuantity = decimal.New(0, 0)
 	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
@@ -197,7 +221,7 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 
 	distributorID := v.FieldByName("DistributorID").String()
 
-	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributorID: distributorID}}, err
+	return &feed{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, expirationDate: date, distributorID: distributorID}}, err
 }
 
 func (f feed) Type() stockType {
@@ -221,15 +245,27 @@ func NewAccessory(dto *NewStockDTO) (Stock, error) {
 
 	name := v.FieldByName("Name").String()
 
-	quantityString := v.FieldByName("MinQuantity").String()
-	var quantity decimal.Decimal
-	if quantityString != "" {
-		quantity, err = decimal.NewFromString(quantityString)
+	quantityString := v.FieldByName("Quantity").String()
+	if quantityString == "" {
+		return nil, errors.New("")
+	}
+
+	quantity, err := decimal.NewFromString(quantityString)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantity       decimal.Decimal
+	)
+	if minQuantityString != "" {
+		minQuantity, err = decimal.NewFromString(minQuantityString)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		quantity = decimal.New(0, 0)
+		minQuantity = decimal.New(0, 0)
 	}
 
 	dateString := v.FieldByName("ExpirationDate").String()
@@ -241,7 +277,7 @@ func NewAccessory(dto *NewStockDTO) (Stock, error) {
 
 	distributorID := v.FieldByName("DistributorID").String()
 
-	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributorID: distributorID}}, err
+	return &accessory{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, distributorID: distributorID}}, err
 }
 
 func (a accessory) Type() stockType {
