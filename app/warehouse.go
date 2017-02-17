@@ -15,6 +15,56 @@ func NewWarehouse(db *sql.DB) *warehouse {
 	return wh
 }
 
+func (wh *warehouse) Add(item Stock) string {
+	wh.createStock(item)
+
+	return item.Id()
+}
+
+func (wh *warehouse) Get(id string) (item Stock, ok bool) {
+	item, ok = wh.readStock(id)
+	return
+}
+
+// Removes the item with the given id from the warehouse.
+func (wh *warehouse) Remove(id string) {
+	wh.deleteStock(id)
+}
+
+// Returns a map with the items in the warehouse with ids as keys and stock items as their values.
+func (wh *warehouse) Stock() (stock map[string]Stock) {
+	stock = make(map[string]Stock)
+
+	// return stock items in db as a Go map structure
+	// something like...
+	// 	for key, value := range wh.stock {
+	// 		stock[key] = value
+	// 	}
+
+	return
+}
+
+func (wh *warehouse) Size() (size int) {
+	// 	return number of stock items in db
+	query := `
+	SELECT COUNT(*) FROM warehouse;
+	`
+
+	rows, err := wh.database.Query(query)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	if err := rows.Scan(&size); err != nil {
+		panic(err)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	return
+}
+
 func (wh *warehouse) initStockTable() {
 	stock_table := `
 	CREATE TABLE IF NOT EXISTS warehouse(
@@ -50,50 +100,30 @@ func (wh *warehouse) initDistributorsTable() {
 
 // Database methods for stock items
 // insert in DB
-func (wh *warehouse) createItem(item Stock) {}
+func (wh *warehouse) createStock(s Stock) {}
 
 // read from DB
-func (wh *warehouse) readItem(id string) (Stock, bool) {
+func (wh *warehouse) readStock(id string) (Stock, bool) {
 	return nil, false
 }
 
 // update in DB
-func (wh *warehouse) updateItem(item Stock) {}
+func (wh *warehouse) updateStock(s Stock) {}
 
 // remove from DB
-func (wh *warehouse) deleteItem(id string) {}
+func (wh *warehouse) deleteStock(id string) {}
 
-func (wh *warehouse) Add(item Stock) string {
-	wh.createItem(item)
+// Database methods for distributors
+// insert in DB
+func (wh *warehouse) createDistributor(d distributor) {}
 
-	return item.Id()
+// read from DB
+func (wh *warehouse) readDistributor(id string) (distributor, bool) {
+	return distributor{}, false
 }
 
-func (wh *warehouse) Get(id string) (item Stock, ok bool) {
-	item, ok = wh.readItem(id)
-	return
-}
+// update in DB
+func (wh *warehouse) updateDistributor(d distributor) {}
 
-// Removes the item with the given id from the warehouse.
-func (wh *warehouse) Remove(id string) {
-	wh.deleteItem(id)
-}
-
-// Returns a map with the items in the warehouse with ids as keys and stock items as their values.
-func (wh *warehouse) Stock() (stock map[string]Stock) {
-	stock = make(map[string]Stock)
-
-	// return stock items in db as a Go map structure
-	// something like...
-	// 	for key, value := range wh.stock {
-	// 		stock[key] = value
-	// 	}
-
-	return
-}
-
-func (wh *warehouse) Size() (size int) {
-	// 	return number of stock items in db
-
-	return
-}
+// remove from DB
+func (wh *warehouse) deleteDistributor(id string) {}

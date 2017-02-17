@@ -17,8 +17,7 @@ func newUserManager(db *sql.DB) *userManager {
 func (um *userManager) initUsersTable() {
 	users_table := `
 	CREATE TABLE IF NOT EXISTS users(
-		id BLOB NOT NULL PRIMARY KEY,
-		name TEXT NOT NULL,
+		name TEXT NOT NULL PRIMARY KEY,
 		password TEXT NOT NULL
 	);
 	`
@@ -28,3 +27,13 @@ func (um *userManager) initUsersTable() {
 		panic(err)
 	}
 }
+
+func (um *userManager) addUser(u user) {}
+
+func (um *userManager) readUser(name string) (user, bool) {
+	return user{}, false
+}
+
+func (um *userManager) updateUser(u user) {}
+
+func (um *userManager) removeUser(name string) {}

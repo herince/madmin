@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"regexp"
 	"testing"
 )
@@ -17,9 +18,13 @@ func buildUrl(base, path string) string {
 
 func TestAddStockPOSTRequest(t *testing.T) {
 	var (
-		madminHandler = newMAdminHandler()
+		dbPath        = "./test_database.sqlite"
+		database      = newDB(dbPath)
+		madminHandler = newMAdminHandler(database)
 		s             = httptest.NewServer(madminHandler)
 	)
+	defer database.Close()
+	defer os.Remove("./test_database.sqlite")
 	defer s.Close()
 
 	requests := []struct {
@@ -58,9 +63,13 @@ func TestAddStockPOSTRequest(t *testing.T) {
 
 func TestValidRemoveStockDELETERequest(t *testing.T) {
 	var (
-		madminHandler = newMAdminHandler()
+		dbPath        = "./test_database.sqlite"
+		database      = newDB(dbPath)
+		madminHandler = newMAdminHandler(database)
 		s             = httptest.NewServer(madminHandler)
 	)
+	defer database.Close()
+	defer os.Remove("./test_database.sqlite")
 	defer s.Close()
 
 	addReqest := struct {

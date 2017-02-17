@@ -18,7 +18,10 @@ import (
 
 // Init function of the app. For now it only runs the server on the given port.
 func Init(port string, handler http.Handler) {
-	database := newDB()
+	var (
+		dbPath   = "./database/database.sqlite"
+		database = newDB(dbPath)
+	)
 
 	// urls for warehouse management API
 	maHandler := newMAdminHandler(database)
