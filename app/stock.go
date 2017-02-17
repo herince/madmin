@@ -12,7 +12,7 @@ type stockType int
 
 // MEDICINE, FEED and ACCESSORY are the default stock types in madmin
 const (
-	MEDICINE stockType = iota
+	MEDICINE  stockType = iota
 	FEED
 	ACCESSORY
 )
@@ -42,6 +42,9 @@ type Stock interface {
 	MinQuantity() decimal.Decimal
 	SetMinQuantity(decimal.Decimal)
 
+	Quantity() decimal.Decimal
+	SetQuantity(decimal.Decimal)
+
 	DistributorID() string
 	SetDistributorID(d string)
 }
@@ -69,6 +72,7 @@ type defaultStock struct {
 	id             string
 	name           string
 	minQuantity    decimal.Decimal
+	quantity       decimal.Decimal
 	expirationDate time.Time
 	distributorID  string
 }
@@ -96,6 +100,12 @@ func (ds defaultStock) MinQuantity() decimal.Decimal {
 }
 func (ds defaultStock) SetMinQuantity(quantity decimal.Decimal) {
 	ds.minQuantity = quantity
+}
+func (ds defaultStock) Quantity() (decimal.Decimal) {
+	return ds.quantity
+}
+func (ds defaultStock) SetQuantity(quantity decimal.Decimal) {
+	ds.quantity = quantity
 }
 func (ds defaultStock) DistributorID() string {
 	return ds.distributorID
