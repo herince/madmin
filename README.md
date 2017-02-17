@@ -8,7 +8,7 @@ This project is supposed to be a data management system for a vet pharmacy at so
 
 ## Unit tests - TBD
 ```console
-% go test -v ./...
+% go test -v ./app/
 ```
 
 ## Download and Installation
