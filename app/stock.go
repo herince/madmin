@@ -9,6 +9,7 @@ import (
 
 type stockType int
 
+// MEDICINE, FEED and ACCESSORY are the default stock types in madmin
 const (
 	MEDICINE stockType = iota
 	FEED
@@ -16,7 +17,7 @@ const (
 )
 
 // StockTyper is an interface that wraps the StockType method.
-// StockType returns the type of a Stock object
+// StockType returns the type of a stock item
 type StockTyper interface {
 	StockType() stockType
 }
@@ -25,8 +26,9 @@ func (st stockType) StockType() stockType {
 	return st
 }
 
+// Stock is a stock item interface
 type Stock interface {
-	Id() string
+	ID() string
 	Type() stockType
 
 	Name() string
@@ -39,11 +41,12 @@ type Stock interface {
 	MinQuantity() decimal.Decimal
 	SetMinQuantity(decimal.Decimal)
 
-	Distributor() distributor
-	SetDistributor(d distributor)
+	Distributor() Distributor
+	SetDistributor(d Distributor)
 }
 
 // NewStock creates a new valid Stock object.
+// For now it only works for stock items of MEDICINE, FEED or ACCESSORY type.
 func NewStock(dto *NewStockDTO) (Stock, error) {
 
 	switch dto.Type {
@@ -57,7 +60,7 @@ func NewStock(dto *NewStockDTO) (Stock, error) {
 		a, err := NewAccessory(dto)
 		return a, err
 	default:
-		return nil, errors.New("Invalid stock type.")
+		return nil, errors.New("invalid stock type")
 	}
 }
 
@@ -66,10 +69,10 @@ type defaultStock struct {
 	name           string
 	minQuantity    decimal.Decimal
 	expirationDate time.Time
-	distributor    distributor
+	distributor    Distributor
 }
 
-func (ds defaultStock) Id() string {
+func (ds defaultStock) ID() string {
 	return ds.id
 }
 func (ds defaultStock) Name() string {
@@ -93,10 +96,10 @@ func (ds defaultStock) MinQuantity() decimal.Decimal {
 func (ds defaultStock) SetMinQuantity(quantity decimal.Decimal) {
 	ds.minQuantity = quantity
 }
-func (ds defaultStock) Distributor() distributor {
+func (ds defaultStock) Distributor() Distributor {
 	return ds.distributor
 }
-func (ds defaultStock) SetDistributor(d distributor) {
+func (ds defaultStock) SetDistributor(d Distributor) {
 	ds.distributor = d
 }
 
@@ -104,7 +107,8 @@ type medicine struct {
 	defaultStock
 }
 
-func NewMedicine(dto *NewStockDTO) (*medicine, error) {
+// NewMedicine creates a new stock item of medicine type (expirable stock item)
+func NewMedicine(dto *NewStockDTO) (Stock, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
@@ -141,7 +145,7 @@ func NewMedicine(dto *NewStockDTO) (*medicine, error) {
 		return nil, err
 	}
 
-	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: *distributor}}, err
+	return &medicine{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
 }
 
 func (m medicine) Type() stockType {
@@ -152,7 +156,8 @@ type feed struct {
 	defaultStock
 }
 
-func NewFeed(dto *NewStockDTO) (*feed, error) {
+// NewFeed creates a new stock item of feed type (expirable stock item)
+func NewFeed(dto *NewStockDTO) (Stock, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
@@ -189,7 +194,7 @@ func NewFeed(dto *NewStockDTO) (*feed, error) {
 		return nil, err
 	}
 
-	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: *distributor}}, err
+	return &feed{defaultStock{id: id, name: name, minQuantity: quantity, expirationDate: date, distributor: distributor}}, err
 }
 
 func (f feed) Type() stockType {
@@ -200,7 +205,10 @@ type accessory struct {
 	defaultStock
 }
 
-func NewAccessory(dto *NewStockDTO) (*accessory, error) {
+// NewAccessory creates a new stock item of accessory type (unexpirable stock item).
+// TODO: minimum quantity should be an integer, represented as decimal
+// (should not have non-zero values after floating point)
+func NewAccessory(dto *NewStockDTO) (Stock, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
@@ -224,7 +232,7 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 	dateString := v.FieldByName("ExpirationDate").String()
 	if dateString != "" {
 		if dateString != "" {
-			err = errors.New("Error in creating stock item: Expiration date set for an accessory.")
+			err = errors.New("error in creating stock item: Expiration date set for an accessory")
 		}
 	}
 
@@ -234,7 +242,7 @@ func NewAccessory(dto *NewStockDTO) (*accessory, error) {
 		return nil, err
 	}
 
-	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributor: *distributor}}, err
+	return &accessory{defaultStock{id: id, name: name, minQuantity: quantity, distributor: distributor}}, err
 }
 
 func (a accessory) Type() stockType {
@@ -245,7 +253,6 @@ func (a accessory) IsExpirable() bool {
 }
 func (a accessory) ExpirationDate() time.Time {
 	panic("Error - trying to read accessory's expiration date. Accessories do not expire.")
-	return time.Time{}
 }
 func (a accessory) SetExpirationDate(time.Time) {
 	panic("Error - trying to set accessory's expiration date. Accessories do not expire.")

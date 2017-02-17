@@ -32,7 +32,7 @@ func authMiddleware(handler http.Handler) http.Handler {
 
 func decodeAuthHeader(authString string) (name string, password string, err error) {
 	if !strings.HasPrefix(authString, "Basic ") {
-		err = errors.New("Invalid authorization header: unknown authorization scheme.")
+		err = errors.New("invalid authorization header: unknown authorization scheme")
 		return
 	}
 
@@ -45,7 +45,7 @@ func decodeAuthHeader(authString string) (name string, password string, err erro
 
 	userData := strings.SplitN(string(credentials), ":", 2)
 	if len(userData) < 2 {
-		err = errors.New("Invalid authorization header: bad user password format.")
+		err = errors.New("invalid authorization header: bad user password format")
 		return
 	}
 

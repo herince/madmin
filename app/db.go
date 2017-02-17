@@ -3,7 +3,7 @@ package app
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // needed for for working with sqlite3
 )
 
 func newDB(dbPath string) (db *sql.DB) {

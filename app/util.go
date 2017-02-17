@@ -23,7 +23,7 @@ func newUUID() (string, error) {
 
 func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusMethodNotAllowed)
-	fmt.Fprintf(w, "Error in request method. Method not allowed - %d", r.Method)
+	fmt.Fprintf(w, "Error in request method. Method not allowed - %s", r.Method)
 	return
 }
 

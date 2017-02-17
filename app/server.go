@@ -1,5 +1,3 @@
-// Package madmin/app implements the back-end logic for the vet pharmacy administrating system.
-// It implements a simple RESTful API that manages somehow the vet pharmacy warehouse.
 package app
 
 import (
@@ -56,7 +54,7 @@ type madminHandler struct {
 
 	userManager *userManager
 
-	warehouse *warehouse
+	warehouse Warehouse
 	database  *sql.DB
 }
 
@@ -108,12 +106,12 @@ func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 	var (
 		resp = &CollectionResponseDTO{"List of existing stock items", make([]string, 0, m.warehouse.Size())}
 
-		itemUrl string
+		itemURL string
 	)
 
 	for _, item := range m.warehouse.Stock() {
-		itemUrl = fmt.Sprintf("/data/stock/%s", item.Name())
-		resp.Urls = append(resp.Urls, itemUrl)
+		itemURL = fmt.Sprintf("/data/stock/%s", item.Name())
+		resp.Urls = append(resp.Urls, itemURL)
 	}
 
 	respBytes, err := json.Marshal(resp)
@@ -138,7 +136,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		query = r.URL
 		_, id = path.Split(query.String())
 
-		item, ok = m.warehouse.Get(id)
+		item, ok = m.warehouse.ReadStock(id)
 	)
 	if !ok {
 		w.Header().Add("ContentLength", "0")
@@ -148,7 +146,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 
 	resp := &StockDTO{}
 
-	resp.Id = item.Id()
+	resp.ID = item.ID()
 	resp.Name = item.Name()
 	resp.Type = item.Type()
 	if item.IsExpirable() {
@@ -193,7 +191,7 @@ func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 		log.Printf("Error in creating stock item: %s", err)
 		return
 	}
-	id := m.warehouse.Add(stockItem)
+	id := m.warehouse.CreateStock(stockItem)
 
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(id)); err != nil {
@@ -209,6 +207,6 @@ func (m *madminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Re
 		query = r.URL
 		_, id = path.Split(query.String())
 	)
-	m.warehouse.Remove(id)
+	m.warehouse.DeleteStock(id)
 	w.WriteHeader(http.StatusNoContent)
 }

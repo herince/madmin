@@ -1,14 +1,16 @@
 package app
 
-// JSON format for the GET requests for "/<items>/"
+// CollectionResponseDTO is a data transfer object needed for the RESTful API implementation.
+// It contains short information about the collection and the urls for each item in the collection.
 type CollectionResponseDTO struct {
 	Info string   `json:"info"`
 	Urls []string `json:"urls"`
 }
 
-// JSON format for the GET requests for "/<items>/<id>"
+// StockDTO is a data transfer object that can be used for marshaling and unmarshaling
+// an existing stock item
 type StockDTO struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 
 	Name string    `json:"name"`
 	Type stockType `json:"type"`
@@ -19,8 +21,9 @@ type StockDTO struct {
 	Distributor string `json:"distributor"`
 }
 
-// New stock items' JSON format
-// IDs of new stock objects should be handled only by the back-end
+// NewStockDTO is a data transfer object that can be used between
+// reading a JSON with data for a new stock item and
+// creating the new stock item with NewStock(*NewStockDTO) (Stock, error)
 type NewStockDTO struct {
 	Name string    `json:"name"`
 	Type stockType `json:"type"`

@@ -1,23 +1,36 @@
 package app
 
-type distributor struct {
+// Distributor is a simple type interface for data about a stock distributor
+type Distributor interface {
+	ID() string
+
+	Name() string
+	SetName(string)
+}
+
+type defaultDistributor struct {
 	id   string
 	name string
 }
 
-func NewDistributor(name string) (*distributor, error) {
+// NewDistributor creates a new distributor with a UUID and a given name
+func NewDistributor(name string) (Distributor, error) {
 	id, err := newUUID()
 	if err != nil {
 		return nil, err
 	}
 
-	return &distributor{id: id, name: name}, nil
+	return &defaultDistributor{id: id, name: name}, nil
 }
 
-func (d distributor) Name() string {
+func (d defaultDistributor) ID() string {
+	return d.id
+}
+
+func (d defaultDistributor) Name() string {
 	return d.name
 }
-func (d distributor) SetName(name string) {
+func (d defaultDistributor) SetName(name string) {
 	d.name = name
 }
 

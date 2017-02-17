@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func buildUrl(base, path string) string {
+func buildURL(base, path string) string {
 	return fmt.Sprintf("%s%s", base, path)
 }
 
@@ -37,9 +37,9 @@ func TestAddStockPOSTRequest(t *testing.T) {
 	}
 
 	for _, req := range requests {
-		postUrl := buildUrl(s.URL, req.path)
+		postURL := buildURL(s.URL, req.path)
 
-		resp, err := http.Post(postUrl, "application/json", bytes.NewReader([]byte(req.body)))
+		resp, err := http.Post(postURL, "application/json", bytes.NewReader([]byte(req.body)))
 		if err != nil {
 			t.Fatalf("Error sending POST request: %s", err)
 		}
@@ -56,7 +56,7 @@ func TestAddStockPOSTRequest(t *testing.T) {
 		}
 
 		if result, err := regexp.Match("........-....-....-....-............", idBytes); result != true || err != nil {
-			t.Errorf("Error in response body: invalid ID format returned. Got % with error %s", result, err)
+			t.Errorf("Error in response body: invalid ID format returned. Got %t with error %s for matching question", result, err)
 		}
 	}
 }
@@ -80,9 +80,9 @@ func TestValidRemoveStockDELETERequest(t *testing.T) {
 		"/data/stock/", `{"name": "Happy Doge","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated,
 	}
 
-	postUrl := buildUrl(s.URL, addReqest.path)
+	postURL := buildURL(s.URL, addReqest.path)
 
-	addResponse, err := http.Post(postUrl, "application/json", bytes.NewReader([]byte(addReqest.body)))
+	addResponse, err := http.Post(postURL, "application/json", bytes.NewReader([]byte(addReqest.body)))
 	if err != nil {
 		t.Fatalf("Error sending POST request: %s", err)
 	}
@@ -99,14 +99,14 @@ func TestValidRemoveStockDELETERequest(t *testing.T) {
 		deleteRequestPath   = fmt.Sprintf("/data/stock/%s", idBytes)
 		deleteRequestStatus = http.StatusNoContent
 
-		deleteUrlString = buildUrl(s.URL, deleteRequestPath)
+		deleteURLString = buildURL(s.URL, deleteRequestPath)
 	)
-	deleteRequestUrl, err := url.Parse(deleteUrlString)
+	deleteRequestURL, err := url.Parse(deleteURLString)
 	if err != nil {
 		t.Fatalf("Error in building request URL. %s", err)
 	}
 
-	deleteRequest := &http.Request{Method: "DELETE", URL: deleteRequestUrl}
+	deleteRequest := &http.Request{Method: "DELETE", URL: deleteRequestURL}
 	deleteResponse, err := client.Do(deleteRequest)
 	if err != nil {
 		t.Fatalf("Error sending DELETE request: %s", err)
