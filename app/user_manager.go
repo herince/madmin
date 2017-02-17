@@ -18,7 +18,8 @@ func (um *userManager) initUsersTable() {
 	usersTable := `
 	CREATE TABLE IF NOT EXISTS users(
 		name TEXT NOT NULL PRIMARY KEY,
-		password TEXT NOT NULL
+		password TEXT NOT NULL,
+		salt BLOB NOT NULL
 	);
 	`
 

@@ -1,6 +1,9 @@
 package app
 
-import "database/sql"
+import (
+	"database/sql"
+	// 	"github.com/shopspring/decimal"
+)
 
 // Warehouse is a warehouse interface.
 // A warehouse must manage two datasets -
@@ -47,8 +50,8 @@ func (wh *dafaultWarehouse) initStockTable() {
 		id BLOB NOT NULL PRIMARY KEY,
 		type TEXT NOT NULL,
 		name TEXT,
-		min_quantity REAL,
-		expiration_date TEXT,
+		min_quantity TEXT,
+		expiration_date INTEGER,
 		distributor_id BLOB,
 		FOREIGN KEY (distributor_id) REFERENCES distributors (Id)
 	);
@@ -77,18 +80,63 @@ func (wh *dafaultWarehouse) initDistributorsTable() {
 // Database CRUD methods for stock items
 // insert in DB
 func (wh *dafaultWarehouse) CreateStock(item Stock) string {
-	// ...
+	transaction, err := wh.database.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	stmt, err := transaction.Prepare(`
+		INSERT INTO warehouse (id, type, name, min_quantity, expiration_date, distributor_id) VALUES(?, ?, ?, ?, ?, ?)
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = stmt.Exec(
+		item.ID(),
+		item.Type(),
+		item.Name(),
+		item.MinQuantity(),
+		item.ExpirationDate().UnixNano(),
+		item.DistributorID())
+	transaction.Commit()
+
 	return item.ID()
 }
 
 // read from DB
 func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
-	// ...
+	stmt, err := wh.database.Prepare(`
+	SELECT
+		type, name, min_quantity, expiration_date, distributor_id FROM warehouse
+	WHERE
+		id = ?
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var (
+		dto           NewStockDTO
+		distributorID string
+	)
+	err = stmt.QueryRow(id).Scan(&dto.Type, &dto.Name, &dto.MinQuantity, &dto.ExpirationDate, &distributorID)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, false
+	case err != nil:
+		panic(err)
+	}
+
 	return
 }
 
 // update in DB
-func (wh *dafaultWarehouse) UpdateStock(s Stock) {}
+func (wh *dafaultWarehouse) UpdateStock(s Stock) {
+
+}
 
 // remove from DB
 func (wh *dafaultWarehouse) DeleteStock(id string) {}
@@ -123,21 +171,21 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 
 func (wh *dafaultWarehouse) Size() (size int) {
 	// 	return number of stock items in db
-	query := `
-	SELECT COUNT(*) FROM warehouse;
-	`
-
-	rows, err := wh.database.Query(query)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	if err := rows.Scan(&size); err != nil {
-		panic(err)
-	}
-	if err := rows.Err(); err != nil {
-		panic(err)
-	}
+	// 	query := `
+	// 	SELECT COUNT(*) FROM warehouse;
+	// 	`
+	//
+	// 	rows, err := wh.database.Query(query)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	defer rows.Close()
+	//
+	// 	if err := rows.Scan(&size); err != nil {
+	// 		panic(err)
+	// 	}
+	// 	if err := rows.Err(); err != nil {
+	// 		panic(err)
+	// 	}
 	return
 }

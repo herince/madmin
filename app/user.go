@@ -1,5 +1,11 @@
 package app
 
+import (
+	"crypto/sha256"
+	"fmt"
+	"math/rand"
+)
+
 // User is an application user's interface
 type User interface {
 	ID() string
@@ -9,12 +15,14 @@ type User interface {
 
 	Password() string
 	SetPassword(string)
+	CheckPassword(string) bool
 }
 
 type defaultUser struct {
 	id       string
 	name     string
 	password string
+	salt     []byte
 }
 
 // NewUser creates a new default user with a valid UUID, name and password
@@ -24,19 +32,48 @@ func NewUser(name, password string) (User, error) {
 		return nil, err
 	}
 
-	return &defaultUser{id: id, name: name, password: password}, nil
+	du := &defaultUser{id: id, name: name}
+	du.SetPassword(password)
+
+	return du, nil
 }
 
-func (du defaultUser) ID() (id string) {
-	return
+func (du defaultUser) ID() string {
+	return du.id
 }
 
-func (du defaultUser) Name() (name string) {
-	return
+func (du defaultUser) Name() string {
+	return du.name
 }
-func (du defaultUser) SetName(name string) {}
+func (du defaultUser) SetName(name string) {
+	du.name = name
+}
 
-func (du defaultUser) Password() (password string) {
-	return
+func (du defaultUser) Password() string {
+	return du.password
 }
-func (du defaultUser) SetPassword(password string) {}
+func (du defaultUser) SetPassword(password string) {
+	saltBase := string(rand.Intn(10000000))[12:]
+
+	h := sha256.New()
+	h.Write([]byte(saltBase))
+	salt := h.Sum(nil)
+
+	du.password = passwordHash(password, salt)
+	du.salt = salt
+}
+
+func (du defaultUser) CheckPassword(password string) bool {
+	newPasswordHash := passwordHash(password, du.salt)
+	return du.password == newPasswordHash
+}
+
+func passwordHash(password string, salt []byte) string {
+	saltedPassword := fmt.Sprintf("%s%s", salt, password)
+
+	h := sha256.New()
+	h.Write([]byte(saltedPassword))
+	passwordHash := h.Sum(nil)
+
+	return fmt.Sprintf("%s", passwordHash)
+}

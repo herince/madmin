@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	app.Init(":4200", nil)
+	app.Init(":4200")
 }

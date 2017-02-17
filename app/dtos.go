@@ -18,7 +18,7 @@ type StockDTO struct {
 	ExpirationDate string `json:"expirationDate"`
 	MinQuantity    string `json:"minQuantity"`
 
-	Distributor string `json:"distributor"`
+	DistributorID string `json:"distributorID"`
 }
 
 // NewStockDTO is a data transfer object that can be used between
@@ -31,5 +31,5 @@ type NewStockDTO struct {
 	ExpirationDate string `json:"expirationDate"`
 	MinQuantity    string `json:"minQuantity"`
 
-	Distributor string `json:"distributor"`
+	DistributorID string `json:"distributorID"`
 }

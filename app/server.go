@@ -15,7 +15,7 @@ import (
 )
 
 // Init function of the app. For now it only runs the server on the given port.
-func Init(port string, handler http.Handler) {
+func Init(port string) {
 	var (
 		dbPath   = "./database/database.sqlite"
 		database = newDB(dbPath)
@@ -27,7 +27,7 @@ func Init(port string, handler http.Handler) {
 
 	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/"))))
 
-	// 	registerCleanUp(database)
+	registerCleanUp(database)
 
 	log.Println("Listening...")
 	err := http.ListenAndServe(port, nil)
@@ -153,7 +153,7 @@ func (m *madminHandler) getStockItemHandler(w http.ResponseWriter, r *http.Reque
 		resp.ExpirationDate = item.ExpirationDate().String()
 	}
 	resp.MinQuantity = item.MinQuantity().String()
-	resp.Distributor = item.Distributor().Name()
+	resp.DistributorID = item.DistributorID()
 
 	respBytes, err := json.Marshal(resp)
 	if err != nil {
