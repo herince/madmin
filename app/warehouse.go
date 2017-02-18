@@ -50,9 +50,9 @@ func (wh *dafaultWarehouse) initStockTable() {
 		id BLOB NOT NULL PRIMARY KEY,
 		type TEXT NOT NULL,
 		name TEXT,
-		quantity TEXT NOT NULL,
-		min_quantity TEXT,
-		expiration_date INTEGER,
+		quantity NUMERIC NOT NULL,
+		min_quantity NUMERIC,
+		expiration_date DATETIME,
 		distributor_id BLOB,
 		FOREIGN KEY (distributor_id) REFERENCES distributors (Id)
 	);
@@ -366,23 +366,17 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 	return
 }
 
+// Size returns the number of rows in the warehouse table in the DB
 func (wh *dafaultWarehouse) Size() (size int) {
-	// 	return number of stock items in db
-	// 	query := `
-	// 	SELECT COUNT(*) FROM warehouse;
-	// 	`
-	//
-	// 	rows, err := wh.database.Query(query)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	defer rows.Close()
-	//
-	// 	if err := rows.Scan(&size); err != nil {
-	// 		panic(err)
-	// 	}
-	// 	if err := rows.Err(); err != nil {
-	// 		panic(err)
-	// 	}
+	stmt, err := wh.database.Prepare("SELECT COUNT(*) FROM warehouse;")
+
+	err = stmt.QueryRow().Scan(&size)
+	switch {
+	case err == sql.ErrNoRows:
+		return 0
+	case err != nil:
+		panic(err)
+	}
+
 	return
 }

@@ -21,7 +21,7 @@ func (um *userManager) initUsersTable() {
 			id
 				TEXT NOT NULL PRIMARY KEY,
 			name
-				TEXT NOT NULL,
+				TEXT NOT NULL UNIQUE,
 			password
 				TEXT NOT NULL,
 			salt
@@ -91,6 +91,37 @@ func (um *userManager) readUser(id string) (User, bool) {
 	return u, true
 }
 
+func (um *userManager) readUserByName(name string) (User, bool) {
+	stmt, err := um.database.Prepare(`
+	SELECT
+		id,
+		password,
+		salt
+	FROM
+		users
+	WHERE
+		name = ?
+	`)
+	defer stmt.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	u := defaultUser{name: name}
+	err = stmt.QueryRow(name).Scan(
+		&u.id,
+		&u.password,
+		&u.salt)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, false
+	case err != nil:
+		panic(err)
+	}
+
+	return u, true
+}
+
 func (um *userManager) updateUser(u User) {
 	stmt, err := um.database.Prepare(`
 	UPDATE
@@ -133,4 +164,12 @@ func (um *userManager) removeUser(id string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (um *userManager) validateUser(name, password string) bool {
+	u, ok := um.readUserByName(name)
+	if ok {
+		return u.CheckPassword(password)
+	}
+	return false
 }

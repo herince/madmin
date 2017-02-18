@@ -19,13 +19,15 @@ func Init(port string) {
 	var (
 		dbPath   = "./database/database.sqlite"
 		database = newDB(dbPath)
+
+		maUserManager = newUserManager(database)
 	)
 
 	// urls for warehouse management API
 	maHandler := newMAdminHandler(database)
-	http.Handle("/data/", authMiddleware(maHandler))
+	http.Handle("/data/", authMiddleware(maHandler, maUserManager))
 
-	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/"))))
+	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/")), maUserManager))
 
 	registerCleanUp(database)
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func authMiddleware(handler http.Handler) http.Handler {
+func authMiddleware(handler http.Handler, um *userManager) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		authString := r.Header.Get("Authorization")
@@ -19,8 +19,7 @@ func authMiddleware(handler http.Handler) http.Handler {
 				respondStatusUnauthorized(w, r)
 			}
 
-			isValidUser := validateUser(name, password)
-
+			isValidUser := um.validateUser(name, password)
 			if isValidUser {
 				handler.ServeHTTP(w, r)
 			} else {
@@ -53,8 +52,4 @@ func decodeAuthHeader(authString string) (name string, password string, err erro
 	password = userData[1]
 
 	return
-}
-
-func validateUser(name, password string) bool {
-	return true
 }
