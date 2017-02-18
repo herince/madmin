@@ -15,10 +15,9 @@ import (
 	"time"
 )
 
-// Init function of the app. For now it only runs the server on the given port.
-func Init(port string) {
+// Init function of the app. For now it only runs the server on the given port with the specified database.
+func Init(port string, dbPath string) {
 	var (
-		dbPath   = "./database/database.sqlite"
 		database = newDB(dbPath)
 
 		maUserManager = newUserManager(database)
@@ -77,6 +76,7 @@ func newMAdminHandler(db *sql.DB) *madminHandler {
 	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE", "PUT")
 	maHandler.router.HandleFunc("/data/stock/", maHandler.stockHandler).Methods("GET", "POST")
 	maHandler.router.HandleFunc("/data/stock/insufficient/", maHandler.insufficientStockHandler).Methods("GET")
+	maHandler.router.HandleFunc("/data/stock/expiring/", maHandler.expiringStockHandler).Methods("GET")
 
 	return maHandler
 }
@@ -117,7 +117,7 @@ func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 
 	for _, item := range m.warehouse.Stock() {
 		itemURL = fmt.Sprintf("/data/stock/%s", item.ID())
-		resp.Urls = append(resp.Urls, itemURL)
+		resp.URLs = append(resp.URLs, itemURL)
 	}
 
 	respBytes, err := json.Marshal(resp)

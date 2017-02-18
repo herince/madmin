@@ -32,8 +32,8 @@ func TestAddStockPOSTRequest(t *testing.T) {
 		body   string
 		status int
 	}{
-		{"/data/stock/", `{"name": "Aspirin", "type": 0, "expirationDate": "2030-01-01T00:00:00.000Z"}`, http.StatusCreated},
-		{"/data/stock/", `{"name": "Happy Doge","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated},
+		{"/data/stock/", `{"name": "Medicine", "type": 0, "expirationDate": "2030-01-01T00:00:00.000Z", "quantity": "2.0"}`, http.StatusCreated},
+		{"/data/stock/", `{"name": "Dog feed","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "quantity": "2.0", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated},
 	}
 
 	for _, req := range requests {
@@ -77,7 +77,7 @@ func TestValidRemoveStockDELETERequest(t *testing.T) {
 		body   string
 		status int
 	}{
-		"/data/stock/", `{"name": "Happy Doge","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated,
+		"/data/stock/", `{"name": "Dog feed","type": 1, "expirationDate": "2030-01-01T00:00:00.000Z", "quantity": "1.0", "minQuantity": "12.5", "distributor": "Happy Doge - Yakimovo"}`, http.StatusCreated,
 	}
 
 	postURL := buildURL(s.URL, addReqest.path)

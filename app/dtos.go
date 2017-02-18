@@ -4,7 +4,7 @@ package app
 // It contains short information about the collection and the urls for each item in the collection.
 type CollectionResponseDTO struct {
 	Info string   `json:"info"`
-	Urls []string `json:"urls"`
+	URLs []string `json:"urls"`
 }
 
 // StockDTO is a data transfer object that can be used for marshaling and unmarshaling

@@ -5,5 +5,9 @@ import (
 )
 
 func main() {
-	app.Init(":4200")
+	var (
+		port = ":4200"
+		dbPath = "./database/database.sqlite"
+	)
+	app.Init(port, dbPath)
 }

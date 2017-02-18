@@ -6,10 +6,6 @@ import (
 	"testing"
 )
 
-func setupDatabase(t *testing.T, dbPath string) *sql.DB {
-	database := newDB(dbPath)
-	return database
-}
 func cleanupDatabase(t *testing.T, database *sql.DB, dbPath string) {
 	database.Close()
 	os.Remove(dbPath)
@@ -41,7 +37,7 @@ func checkIfTableExists(t *testing.T, database *sql.DB, table string) {
 
 func TestWarehouse(t *testing.T) {
 	dbPath := "./test_database.sqlite"
-	db := setupDatabase(t, dbPath)
+	db := newDB(dbPath)
 
 	t.Run("NewWarehouse_DoesNotPanic", func(t *testing.T) {
 		defer func() {

@@ -184,13 +184,13 @@ func (wh *dafaultWarehouse) UpdateStock(item Stock) {
 	}
 
 	_, err = stmt.Exec(
-		item.ID(),
 		item.Type(),
 		item.Name(),
 		item.Quantity().String(),
 		item.MinQuantity().String(),
 		item.ExpirationDate(),
-		item.DistributorID())
+		item.DistributorID(),
+		item.ID())
 	if err != nil {
 		panic(err)
 	}
