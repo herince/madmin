@@ -67,3 +67,34 @@ func TestSetPassword(t *testing.T) {
 		}
 	}
 }
+
+func TestDoesSetPasswordUseSalt(t *testing.T) {
+	var(
+		u = defaultUser{}
+		password = "password"
+
+		emptySalt = make([]byte, 0)
+	)
+	u.SetPassword(password)
+
+	if u.Password() == passwordHash(password, emptySalt) {
+		t.Fatalf(`
+			Hashing password with no salt. How dare you? :O
+		`)
+	}
+}
+
+func TestDoesPasswordHashUseSalt(t *testing.T) {
+	var(
+		password = "password"
+
+		emptySalt = make([]byte, 0)
+		awesomeSalt = []byte("I am awesome!")
+	)
+
+	if passwordHash(password, awesomeSalt) == passwordHash(password, emptySalt) {
+		t.Fatalf(`
+			Hashing password with no salt. How dare you? :O
+		`)
+	}
+}
