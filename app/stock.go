@@ -11,7 +11,7 @@ type stockType int
 
 // MEDICINE, FEED and ACCESSORY are the default stock types in madmin
 const (
-	MEDICINE stockType = iota
+	MEDICINE  stockType = iota
 	FEED
 	ACCESSORY
 )
@@ -287,4 +287,14 @@ func (a accessory) ExpirationDate() time.Time {
 }
 func (a accessory) SetExpirationDate(time.Time) {
 	panic("Error - trying to set accessory's expiration date. Accessories do not expire.")
+}
+
+func compareStock(first, second Stock) bool {
+	return first.ID() == second.ID() &&
+		first.Type() == second.Type() &&
+		first.Name() == second.Name() &&
+		first.ExpirationDate() == second.ExpirationDate() &&
+		first.Quantity().Cmp(second.Quantity()) == 0 &&
+		first.MinQuantity().Cmp(second.MinQuantity()) == 0 &&
+		first.DistributorID() == second.DistributorID()
 }

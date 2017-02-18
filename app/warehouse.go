@@ -2,6 +2,8 @@ package app
 
 import (
 	"database/sql"
+
+	_ "github.com/shopspring/decimal"
 )
 
 // Warehouse is a warehouse interface.
@@ -64,13 +66,13 @@ func (wh *dafaultWarehouse) initStockTable() {
 }
 
 func (wh *dafaultWarehouse) initDistributorsTable() {
+
 	distributorsTable := `
 	CREATE TABLE IF NOT EXISTS
 		distributors (
 			id BLOB NOT NULL PRIMARY KEY,
 			name TEXT);
 	`
-
 	_, err := wh.database.Exec(distributorsTable)
 	if err != nil {
 		panic(err)
@@ -90,7 +92,7 @@ func (wh *dafaultWarehouse) CreateStock(item Stock) {
 				min_quantity,
 				expiration_date,
 				distributor_id)
-		VALUES(?, ?, ?, ?, ?, ?)
+		VALUES(?, ?, ?, ?, ?, ?, ?)
 	`)
 	defer stmt.Close()
 	if err != nil {
@@ -101,9 +103,9 @@ func (wh *dafaultWarehouse) CreateStock(item Stock) {
 		item.ID(),
 		item.Type(),
 		item.Name(),
-		item.Quantity(),
-		item.MinQuantity(),
-		item.ExpirationDate().UnixNano(),
+		item.Quantity().String(),
+		item.MinQuantity().String(),
+		item.ExpirationDate(),
 		item.DistributorID())
 	if err != nil {
 		panic(err)
@@ -186,9 +188,9 @@ func (wh *dafaultWarehouse) UpdateStock(item Stock) {
 		item.ID(),
 		item.Type(),
 		item.Name(),
-		item.Quantity(),
-		item.MinQuantity(),
-		item.ExpirationDate().UnixNano(),
+		item.Quantity().String(),
+		item.MinQuantity().String(),
+		item.ExpirationDate(),
 		item.DistributorID())
 	if err != nil {
 		panic(err)

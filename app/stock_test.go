@@ -5,15 +5,7 @@ import (
 )
 
 func expectTypeAndExpirationDate(t *testing.T, aStockType stockType) {
-	dto := NewStockDTO{
-		"name",
-		aStockType,
-		"1",
-		"2030-01-01T00:00:00.000Z",
-		"",
-		"",
-	}
-	stockItem, err := NewStock(&dto)
+	stockItem, err := defaultExpirableStockItem(aStockType)
 
 	checkNewItemCreating(t, stockItem, err)
 
@@ -27,15 +19,7 @@ func expectTypeAndExpirationDate(t *testing.T, aStockType stockType) {
 }
 
 func expectTypeAndNoExpirationDate(t *testing.T, aStockType stockType) {
-	dto := NewStockDTO{
-		"name",
-		aStockType,
-		"1",
-		"",
-		"",
-		"",
-	}
-	stockItem, err := NewStock(&dto)
+	stockItem, err := defaultUnexpirableStockItem(aStockType)
 
 	checkNewItemCreating(t, stockItem, err)
 
