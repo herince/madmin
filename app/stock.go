@@ -2,7 +2,6 @@ package app
 
 import (
 	"errors"
-	"reflect"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -125,13 +124,11 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 		return nil, err
 	}
 
-	v := reflect.ValueOf(*dto)
+	name := dto.Name
 
-	name := v.FieldByName("Name").String()
-
-	quantityString := v.FieldByName("Quantity").String()
+	quantityString := dto.Quantity
 	if quantityString == "" {
-		return nil, errors.New("")
+		return nil, errors.New("no quantity set for stock")
 	}
 
 	quantity, err := decimal.NewFromString(quantityString)
@@ -140,7 +137,7 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 	}
 
 	var (
-		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantityString = dto.MinQuantity
 		minQuantity       decimal.Decimal
 	)
 	if minQuantityString != "" {
@@ -152,9 +149,9 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 		minQuantity = decimal.New(0, 0)
 	}
 
-	dateString := v.FieldByName("ExpirationDate").String()
+	dateString := dto.ExpirationDate
 	if dateString == "" {
-		return nil, errors.New("No expiration date set for medicine")
+		return nil, errors.New("no expiration date set for medicine")
 	}
 	layout := "2006-01-02T15:04:05.000Z"
 	date, err := time.Parse(layout, dateString)
@@ -162,7 +159,7 @@ func NewMedicine(dto *NewStockDTO) (Stock, error) {
 		return nil, err
 	}
 
-	distributorID := v.FieldByName("DistributorID").String()
+	distributorID := dto.DistributorID
 
 	return &medicine{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, expirationDate: date, distributorID: distributorID}}, err
 }
@@ -182,13 +179,11 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 		return nil, err
 	}
 
-	v := reflect.ValueOf(*dto)
+	name := dto.Name
 
-	name := v.FieldByName("Name").String()
-
-	quantityString := v.FieldByName("Quantity").String()
+	quantityString := dto.Quantity
 	if quantityString == "" {
-		return nil, errors.New("")
+		return nil, errors.New("no quantity set for stock")
 	}
 
 	quantity, err := decimal.NewFromString(quantityString)
@@ -197,7 +192,7 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 	}
 
 	var (
-		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantityString = dto.MinQuantity
 		minQuantity       decimal.Decimal
 	)
 	if minQuantityString != "" {
@@ -209,9 +204,9 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 		minQuantity = decimal.New(0, 0)
 	}
 
-	dateString := v.FieldByName("ExpirationDate").String()
+	dateString := dto.ExpirationDate
 	if dateString == "" {
-		return nil, errors.New("No expiration date set for feed")
+		return nil, errors.New("no expiration date set for feed")
 	}
 	layout := "2006-01-02T15:04:05.000Z"
 	date, err := time.Parse(layout, dateString)
@@ -219,7 +214,7 @@ func NewFeed(dto *NewStockDTO) (Stock, error) {
 		return nil, err
 	}
 
-	distributorID := v.FieldByName("DistributorID").String()
+	distributorID := dto.DistributorID
 
 	return &feed{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, expirationDate: date, distributorID: distributorID}}, err
 }
@@ -241,13 +236,11 @@ func NewAccessory(dto *NewStockDTO) (Stock, error) {
 		return nil, err
 	}
 
-	v := reflect.ValueOf(*dto)
+	name := dto.Name
 
-	name := v.FieldByName("Name").String()
-
-	quantityString := v.FieldByName("Quantity").String()
+	quantityString := dto.Quantity
 	if quantityString == "" {
-		return nil, errors.New("")
+		return nil, errors.New("no quantity set for stock")
 	}
 
 	quantity, err := decimal.NewFromString(quantityString)
@@ -256,7 +249,7 @@ func NewAccessory(dto *NewStockDTO) (Stock, error) {
 	}
 
 	var (
-		minQuantityString = v.FieldByName("MinQuantity").String()
+		minQuantityString = dto.MinQuantity
 		minQuantity       decimal.Decimal
 	)
 	if minQuantityString != "" {
@@ -268,14 +261,14 @@ func NewAccessory(dto *NewStockDTO) (Stock, error) {
 		minQuantity = decimal.New(0, 0)
 	}
 
-	dateString := v.FieldByName("ExpirationDate").String()
+	dateString := dto.ExpirationDate
 	if dateString != "" {
 		if dateString != "" {
-			err = errors.New("error in creating stock item: Expiration date set for an accessory")
+			return nil, errors.New("error in creating stock item: expiration date set for an accessory")
 		}
 	}
 
-	distributorID := v.FieldByName("DistributorID").String()
+	distributorID := dto.DistributorID
 
 	return &accessory{defaultStock{id: id, name: name, quantity: quantity, minQuantity: minQuantity, distributorID: distributorID}}, err
 }

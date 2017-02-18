@@ -60,8 +60,8 @@ func TestSetPassword(t *testing.T) {
 		if !test.shouldCauseError && err == nil {
 			if ok := user.CheckPassword(test.password); !ok {
 				t.Fatalf(`
-				Error when setting password.
-				Hash of passed password to CheckPassword() should equal hash of set password.
+					Error when setting password.
+					Hash of passed password to CheckPassword() should equal hash of set password.
 				`, )
 			}
 		}
@@ -69,8 +69,8 @@ func TestSetPassword(t *testing.T) {
 }
 
 func TestDoesSetPasswordUseSalt(t *testing.T) {
-	var(
-		u = defaultUser{}
+	var (
+		u        = defaultUser{}
 		password = "password"
 
 		emptySalt = make([]byte, 0)
@@ -85,10 +85,10 @@ func TestDoesSetPasswordUseSalt(t *testing.T) {
 }
 
 func TestDoesPasswordHashUseSalt(t *testing.T) {
-	var(
+	var (
 		password = "password"
 
-		emptySalt = make([]byte, 0)
+		emptySalt   = make([]byte, 0)
 		awesomeSalt = []byte("I am awesome!")
 	)
 
