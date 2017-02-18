@@ -88,7 +88,7 @@ func (um *userManager) readUser(id string) (User, bool) {
 		panic(err)
 	}
 
-	return u, true
+	return &u, true
 }
 
 func (um *userManager) readUserByName(name string) (User, bool) {
@@ -119,7 +119,7 @@ func (um *userManager) readUserByName(name string) (User, bool) {
 		panic(err)
 	}
 
-	return u, true
+	return &u, true
 }
 
 func (um *userManager) updateUser(u User) {

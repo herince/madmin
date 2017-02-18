@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/rand"
+	"errors"
 )
 
 // User is an application user's interface
@@ -14,7 +15,7 @@ type User interface {
 	SetName(string)
 
 	Password() string
-	SetPassword(string)
+	SetPassword(string) error
 	CheckPassword(string) bool
 
 	Salt() []byte
@@ -34,28 +35,38 @@ func NewUser(name, password string) (User, error) {
 		return nil, err
 	}
 
+	if len(name) == 0{
+		return nil, errors.New("cannot set empty string as name")
+	}
+
 	du := &defaultUser{id: id, name: name}
-	du.SetPassword(password)
+	err = du.SetPassword(password)
+	if err != nil {
+		return nil, err
+	}
 
 	return du, nil
 }
 
-func (du defaultUser) ID() string {
+func (du *defaultUser) ID() string {
 	return du.id
 }
 
-func (du defaultUser) Name() string {
+func (du *defaultUser) Name() string {
 	return du.name
 }
-func (du defaultUser) SetName(name string) {
+func (du *defaultUser) SetName(name string) {
 	du.name = name
 }
 
-func (du defaultUser) Password() string {
+func (du *defaultUser) Password() string {
 	return du.password
 }
-func (du defaultUser) SetPassword(password string) {
-	saltBase := string(rand.Intn(10000000))[12:]
+func (du *defaultUser) SetPassword(password string) error {
+	if len(password) == 0 {
+		return errors.New("cannot set empty string as password")
+	}
+	saltBase := fmt.Sprintf("%s", rand.Intn(10000000))
 
 	h := sha256.New()
 	h.Write([]byte(saltBase))
@@ -63,14 +74,16 @@ func (du defaultUser) SetPassword(password string) {
 
 	du.password = passwordHash(password, salt)
 	du.salt = salt
+
+	return nil
 }
 
-func (du defaultUser) CheckPassword(password string) bool {
+func (du *defaultUser) CheckPassword(password string) bool {
 	newPasswordHash := passwordHash(password, du.salt)
 	return du.password == newPasswordHash
 }
 
-func (du defaultUser) Salt () []byte {
+func (du *defaultUser) Salt() []byte {
 	return du.salt
 }
 
@@ -79,7 +92,7 @@ func passwordHash(password string, salt []byte) string {
 
 	h := sha256.New()
 	h.Write([]byte(saltedPassword))
-	passwordHash := h.Sum(nil)
+	pwdHash := h.Sum(nil)
 
-	return fmt.Sprintf("%s", passwordHash)
+	return fmt.Sprintf("%s", pwdHash)
 }

@@ -73,7 +73,7 @@ func newMAdminHandler(db *sql.DB) *madminHandler {
 
 	maHandler.router = mux.NewRouter()
 
-	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE")
+	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE", "PUT")
 	maHandler.router.HandleFunc("/data/stock/", maHandler.stockHandler).Methods("GET", "POST")
 
 	return maHandler
