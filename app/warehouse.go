@@ -2,7 +2,6 @@ package app
 
 import (
 	"database/sql"
-	"log"
 )
 
 // Warehouse is a warehouse interface.
@@ -327,7 +326,7 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 
 	rows, err := wh.database.Query(query)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer rows.Close()
 
