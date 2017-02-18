@@ -133,7 +133,7 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 
 	var (
 		stockItem = defaultStock{id: id}
-		sType int8
+		sType     int8
 	)
 	err = stmt.QueryRow(id).Scan(
 		&sType,
@@ -325,7 +325,6 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 			warehouse
 	`
 
-
 	rows, err := wh.database.Query(query)
 	if err != nil {
 		log.Fatal(err)
@@ -335,7 +334,7 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 	for rows.Next() {
 		var (
 			stockItem = defaultStock{}
-			sType int8
+			sType     int8
 		)
 		err = rows.Scan(
 			&stockItem.id,
@@ -361,7 +360,6 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 	if err != nil {
 		panic(err)
 	}
-
 
 	return
 }

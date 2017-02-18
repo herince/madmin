@@ -2,9 +2,9 @@ package app
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"math/rand"
-	"errors"
 )
 
 // User is an application user's interface
@@ -35,7 +35,7 @@ func NewUser(name, password string) (User, error) {
 		return nil, err
 	}
 
-	if len(name) == 0{
+	if len(name) == 0 {
 		return nil, errors.New("cannot set empty string as name")
 	}
 

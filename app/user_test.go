@@ -62,7 +62,7 @@ func TestSetPassword(t *testing.T) {
 				t.Fatalf(`
 					Error when setting password.
 					Hash of passed password to CheckPassword() should equal hash of set password.
-				`, )
+				`)
 			}
 		}
 	}

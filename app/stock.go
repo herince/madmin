@@ -11,7 +11,7 @@ type stockType int
 
 // MEDICINE, FEED and ACCESSORY are the default stock types in madmin
 const (
-	MEDICINE  stockType = iota
+	MEDICINE stockType = iota
 	FEED
 	ACCESSORY
 )
@@ -35,6 +35,9 @@ type Stock interface {
 	SetName(string)
 
 	IsExpirable() bool
+	// IsExpirable() should always be chacked before trying to call ExpirationDate()
+	// or SetExpitrationDate(). Trying to get or set expiration date of an unexpirable
+	// stock causes panic.
 	ExpirationDate() time.Time
 	SetExpirationDate(time.Time)
 
@@ -100,7 +103,7 @@ func (ds defaultStock) MinQuantity() decimal.Decimal {
 func (ds defaultStock) SetMinQuantity(quantity decimal.Decimal) {
 	ds.minQuantity = quantity
 }
-func (ds defaultStock) Quantity() (decimal.Decimal) {
+func (ds defaultStock) Quantity() decimal.Decimal {
 	return ds.quantity
 }
 func (ds defaultStock) SetQuantity(quantity decimal.Decimal) {
