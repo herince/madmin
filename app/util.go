@@ -2,9 +2,12 @@ package app
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"io"
 	"net/http"
+	"time"
 )
 
 // newUUID generates a random UUID according to RFC 4122
@@ -30,5 +33,28 @@ func respondMethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 func respondStatusUnauthorized(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("WWW-Authenticate", "Basic realm=\"mira administrator\"")
 	w.WriteHeader(http.StatusUnauthorized)
+	return
+}
+
+func validDateFromString(dateString string) (date time.Time, err error) {
+	if dateString == "" {
+		return time.Unix(0, 0), errors.New("expected expiration dateString but not set")
+	}
+	layout := "2006-01-02T15:04:05.000Z"
+	date, err = time.Parse(layout, dateString)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func validQuantityFromString(quantityString string) (quantity decimal.Decimal, err error) {
+	if quantityString == "" {
+		return decimal.Zero, errors.New("no quantity set for stock")
+	}
+	quantity, err = decimal.NewFromString(quantityString)
+	if err != nil {
+		return
+	}
 	return
 }

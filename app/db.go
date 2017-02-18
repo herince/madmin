@@ -19,11 +19,3 @@ func newDB(dbPath string) (db *sql.DB) {
 
 	return
 }
-
-func truncateDB() error {
-	return nil
-}
-
-func dropDB() error {
-	return nil
-}

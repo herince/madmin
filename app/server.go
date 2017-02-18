@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/gorilla/mux"
+	"time"
 )
 
 // Init function of the app. For now it only runs the server on the given port.
@@ -75,6 +76,7 @@ func newMAdminHandler(db *sql.DB) *madminHandler {
 
 	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE", "PUT")
 	maHandler.router.HandleFunc("/data/stock/", maHandler.stockHandler).Methods("GET", "POST")
+	maHandler.router.HandleFunc("/data/stock/insufficient/", maHandler.insufficientStockHandler).Methods("GET")
 
 	return maHandler
 }
@@ -96,6 +98,8 @@ func (m *madminHandler) stockItemHandler(w http.ResponseWriter, r *http.Request)
 		m.getStockItemHandler(w, r)
 	case "DELETE":
 		m.removeStockItemHandler(w, r)
+	case "PUt":
+		m.updateStockItemHandler(w, r)
 	default:
 		respondMethodNotAllowed(w, r)
 	}
@@ -112,7 +116,7 @@ func (m *madminHandler) listStockHandler(w http.ResponseWriter, r *http.Request)
 	)
 
 	for _, item := range m.warehouse.Stock() {
-		itemURL = fmt.Sprintf("/data/stock/%s", item.Name())
+		itemURL = fmt.Sprintf("/data/stock/%s", item.ID())
 		resp.Urls = append(resp.Urls, itemURL)
 	}
 
@@ -181,7 +185,7 @@ func (m *madminHandler) addStockHandler(w http.ResponseWriter, r *http.Request) 
 		err     = decoder.Decode(newItem)
 	)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		log.Printf("Error in unmarshaling request body: %s", err)
 		return
 	}
@@ -211,4 +215,112 @@ func (m *madminHandler) removeStockItemHandler(w http.ResponseWriter, r *http.Re
 	)
 	m.warehouse.DeleteStock(id)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Handler for PUT /stock/<id>
+//
+// UPDATE the item with <id> in the warehouse
+// or return error if there is no such item.
+func (m *madminHandler) updateStockItemHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		query = r.URL
+		_, id = path.Split(query.String())
+	)
+
+	var (
+		updateDto = &StockDTO{}
+
+		decoder = json.NewDecoder(r.Body)
+		err     = decoder.Decode(updateDto)
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("Error in unmarshaling request body: %s", err)
+		return
+	}
+	defer r.Body.Close()
+
+	stockItem, ok := m.warehouse.ReadStock(id)
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	err = stockItem.Update(*updateDto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	m.warehouse.UpdateStock(stockItem)
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+// Handler for GET /stock/insufficient/
+//
+// Lists insufficient stock items
+func (m *madminHandler) insufficientStockHandler(w http.ResponseWriter, r *http.Request) {
+
+	stockItems := m.warehouse.Stock()
+	insufficientStockItems := make([]string, 0, len(stockItems))
+
+	for _, stock := range stockItems {
+		if stock.Quantity().Cmp(stock.MinQuantity()) == -1 {
+
+			itemURL := fmt.Sprintf("/data/stock/%s", stock.ID())
+			insufficientStockItems = append(insufficientStockItems, itemURL)
+		}
+	}
+
+	resp := &CollectionResponseDTO{"List of insufficient stock items", insufficientStockItems}
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error in marshalling results: %s", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if _, err := w.Write(respBytes); err != nil {
+		log.Printf("Error while writing response: %s", err)
+	}
+}
+
+// TODO: add list of insufficient stock items for concrete distributor
+
+// Handler for GET /stock/expiring/
+//
+// Lists expiring stock items
+func (m *madminHandler) expiringStockHandler(w http.ResponseWriter, r *http.Request) {
+
+	var (
+		stockItems         = m.warehouse.Stock()
+		expiringStockItems = make([]string, 0, len(stockItems))
+		dateLimit          = time.Now().AddDate(0, 0, 7)
+	)
+
+	for _, stock := range stockItems {
+		if stock.IsExpirable() {
+			if !stock.ExpirationDate().Before(dateLimit) {
+				itemURL := fmt.Sprintf("/data/stock/%s", stock.ID())
+				expiringStockItems = append(expiringStockItems, itemURL)
+			}
+		}
+	}
+
+	resp := &CollectionResponseDTO{"List of existing stock items", expiringStockItems}
+
+	respBytes, err := json.Marshal(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error in marshalling results: %s", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if _, err := w.Write(respBytes); err != nil {
+		log.Printf("Error while writing response: %s", err)
+	}
 }

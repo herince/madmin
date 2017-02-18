@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 
+	// used for decimal operations
 	_ "github.com/shopspring/decimal"
 )
 
@@ -152,16 +153,14 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 
 	switch stockType(sType) {
 	case MEDICINE:
-		return medicine{stockItem}, true
+		return &medicine{stockItem}, true
 	case FEED:
-		return feed{stockItem}, true
+		return &feed{stockItem}, true
 	case ACCESSORY:
-		return accessory{stockItem}, true
+		return &accessory{stockItem}, true
 	default:
 		panic("invalid stock type in DB record")
 	}
-
-	return nil, false
 }
 
 // update in DB
@@ -346,13 +345,17 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 			&stockItem.expirationDate,
 			&stockItem.distributorID)
 
+		if err != nil {
+			panic(err)
+		}
+
 		switch stockType(sType) {
 		case MEDICINE:
-			stock[stockItem.ID()] = medicine{stockItem}
+			stock[stockItem.ID()] = &medicine{stockItem}
 		case FEED:
-			stock[stockItem.ID()] = feed{stockItem}
+			stock[stockItem.ID()] = &feed{stockItem}
 		case ACCESSORY:
-			stock[stockItem.ID()] = accessory{stockItem}
+			stock[stockItem.ID()] = &accessory{stockItem}
 		default:
 			panic("invalid stock type in DB record")
 		}
@@ -368,6 +371,9 @@ func (wh *dafaultWarehouse) Stock() (stock map[string]Stock) {
 // Size returns the number of rows in the warehouse table in the DB
 func (wh *dafaultWarehouse) Size() (size int) {
 	stmt, err := wh.database.Prepare("SELECT COUNT(*) FROM warehouse;")
+	if err != nil {
+		panic(err)
+	}
 
 	err = stmt.QueryRow().Scan(&size)
 	switch {

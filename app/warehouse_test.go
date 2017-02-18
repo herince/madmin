@@ -1,9 +1,9 @@
 package app
 
 import (
-	"testing"
-	"os"
 	"database/sql"
+	"os"
+	"testing"
 )
 
 func setupDatabase(t *testing.T, dbPath string) *sql.DB {
@@ -141,7 +141,6 @@ func TestWarehouse(t *testing.T) {
 			t.Fatalf(`reads deleted item from database ???`)
 		}
 	})
-
 
 	cleanupDatabase(t, db, dbPath)
 }

@@ -66,7 +66,7 @@ func (du *defaultUser) SetPassword(password string) error {
 	if len(password) == 0 {
 		return errors.New("cannot set empty string as password")
 	}
-	saltBase := fmt.Sprintf("%s", rand.Intn(10000000))
+	saltBase := fmt.Sprintf("%d", rand.Intn(10000000))
 
 	h := sha256.New()
 	h.Write([]byte(saltBase))

@@ -10,10 +10,9 @@ func expectTypeAndExpirationDate(t *testing.T, aStockType stockType) {
 	checkNewItemCreating(t, stockItem, err)
 
 	if stockItem.Type() != aStockType {
-		t.Fatal(`
-			Incorrect stock type. Got %s, expected %s.`,
-			stockItem.Type(),
-			aStockType,
+		t.Fatalf(`Incorrect stock type. Got %d, expected %d.`,
+			int(stockItem.Type()),
+			int(aStockType),
 		)
 	}
 }
@@ -24,10 +23,10 @@ func expectTypeAndNoExpirationDate(t *testing.T, aStockType stockType) {
 	checkNewItemCreating(t, stockItem, err)
 
 	if stockItem.Type() != aStockType {
-		t.Fatal(`
-			Incorrect stock type. Got %s, expected %s.`,
-			stockItem.Type(),
-			aStockType,
+		t.Fatalf(`
+			Incorrect stock type. Got %d, expected %d.`,
+			int(stockItem.Type()),
+			int(aStockType),
 		)
 	}
 }
