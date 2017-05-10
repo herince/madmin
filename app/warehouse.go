@@ -95,10 +95,10 @@ func (wh *dafaultWarehouse) CreateStock(item Stock) {
 				distributor_id)
 		VALUES(?, ?, ?, ?, ?, ?, ?)
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		item.ID(),
@@ -128,10 +128,10 @@ func (wh *dafaultWarehouse) ReadStock(id string) (item Stock, ok bool) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	var (
 		stockItem = defaultStock{id: id}
@@ -178,10 +178,10 @@ func (wh *dafaultWarehouse) UpdateStock(item Stock) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		item.Type(),
@@ -204,10 +204,10 @@ func (wh *dafaultWarehouse) DeleteStock(id string) {
 		WHERE
 			id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(id)
 	if err != nil {
@@ -225,10 +225,10 @@ func (wh *dafaultWarehouse) CreateDistributor(d Distributor) {
 				name)
 		VALUES (?, ?)
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		d.ID(),
@@ -248,10 +248,10 @@ func (wh *dafaultWarehouse) ReadDistributor(id string) (Distributor, bool) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	var d = defaultDistributor{id: id}
 
@@ -276,10 +276,10 @@ func (wh *dafaultWarehouse) UpdateDistributor(d Distributor) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		d.Name(),
@@ -297,10 +297,10 @@ func (wh *dafaultWarehouse) DeleteDistributor(id string) {
 		WHERE
 			id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(id)
 	if err != nil {
@@ -374,6 +374,7 @@ func (wh *dafaultWarehouse) Size() (size int) {
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	err = stmt.QueryRow().Scan(&size)
 	switch {

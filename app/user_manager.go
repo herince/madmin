@@ -55,10 +55,10 @@ func (um *defaultUserManager) CreateUser(u User) {
 				salt)
 		VALUES(?, ?, ?, ?)
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		u.ID(),
@@ -81,10 +81,10 @@ func (um *defaultUserManager) ReadUserById(id string) (User, bool) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	u := defaultUser{id: id}
 	err = stmt.QueryRow(id).Scan(
@@ -112,10 +112,10 @@ func (um *defaultUserManager) ReadUserByName(name string) (User, bool) {
 	WHERE
 		name = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	u := defaultUser{name: name}
 	err = stmt.QueryRow(name).Scan(
@@ -143,10 +143,10 @@ func (um *defaultUserManager) UpdateUser(u User) {
 	WHERE
 		id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(
 		u.Name(),
@@ -165,10 +165,10 @@ func (um *defaultUserManager) RemoveUser(id string) {
 		WHERE
 			id = ?
 	`)
-	defer stmt.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(id)
 	if err != nil {
