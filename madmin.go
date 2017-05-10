@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/herince/madmin/app"
 )
 
@@ -9,5 +11,12 @@ func main() {
 		port = ":4200"
 		dbPath = "./database/database.sqlite"
 	)
-	app.Init(port, dbPath)
+
+	server := app.NewMAdminServer(port, dbPath)
+
+	log.Println("Listening...")
+	err := server.ListenAndServe();
+	if err != nil {
+		panic(err)
+	}
 }

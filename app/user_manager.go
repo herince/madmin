@@ -2,19 +2,29 @@ package app
 
 import "database/sql"
 
-type userManager struct {
-	database *sql.DB
+type UserManager interface {
+	CreateUser(User)
+	ReadUserById(string) (User, bool)
+	ReadUserByName(string) (User, bool)
+	UpdateUser(User)
+	RemoveUser(string)
+
+	ValidateUser(string, string) bool
 }
 
-func newUserManager(db *sql.DB) *userManager {
-	um := &userManager{database: db}
+func NewUserManager(db *sql.DB) UserManager {
+	um := &defaultUserManager{database: db}
 
 	um.initUsersTable()
 
 	return um
 }
 
-func (um *userManager) initUsersTable() {
+type defaultUserManager struct {
+	database *sql.DB
+}
+
+func (um *defaultUserManager) initUsersTable() {
 	usersTable := `
 	CREATE TABLE IF NOT EXISTS
 		users (
@@ -35,7 +45,7 @@ func (um *userManager) initUsersTable() {
 	}
 }
 
-func (um *userManager) createUser(u User) {
+func (um *defaultUserManager) CreateUser(u User) {
 	stmt, err := um.database.Prepare(`
 		INSERT INTO
 			users (
@@ -60,7 +70,7 @@ func (um *userManager) createUser(u User) {
 	}
 }
 
-func (um *userManager) readUser(id string) (User, bool) {
+func (um *defaultUserManager) ReadUserById(id string) (User, bool) {
 	stmt, err := um.database.Prepare(`
 	SELECT
 		name,
@@ -91,7 +101,7 @@ func (um *userManager) readUser(id string) (User, bool) {
 	return &u, true
 }
 
-func (um *userManager) readUserByName(name string) (User, bool) {
+func (um *defaultUserManager) ReadUserByName(name string) (User, bool) {
 	stmt, err := um.database.Prepare(`
 	SELECT
 		id,
@@ -122,7 +132,7 @@ func (um *userManager) readUserByName(name string) (User, bool) {
 	return &u, true
 }
 
-func (um *userManager) updateUser(u User) {
+func (um *defaultUserManager) UpdateUser(u User) {
 	stmt, err := um.database.Prepare(`
 	UPDATE
 		users
@@ -148,7 +158,7 @@ func (um *userManager) updateUser(u User) {
 	}
 }
 
-func (um *userManager) removeUser(id string) {
+func (um *defaultUserManager) RemoveUser(id string) {
 	stmt, err := um.database.Prepare(`
 		DELETE FROM
 			users
@@ -166,8 +176,8 @@ func (um *userManager) removeUser(id string) {
 	}
 }
 
-func (um *userManager) validateUser(name, password string) bool {
-	u, ok := um.readUserByName(name)
+func (um *defaultUserManager) ValidateUser(name, password string) bool {
+	u, ok := um.ReadUserByName(name)
 	if ok {
 		return u.CheckPassword(password)
 	}

@@ -15,34 +15,33 @@ import (
 	"time"
 )
 
-// Init function of the app. For now it only runs the server on the given port with the specified database.
-func Init(port string, dbPath string) {
-	var (
-		database = newDB(dbPath)
+type madminServer struct {
+	*http.Server
+}
 
-		maUserManager = newUserManager(database)
-	)
+func NewMAdminServer(port, dbPath string) *madminServer {
+	database := newDB(dbPath)
 
-	// urls for warehouse management API
-	maHandler := newMAdminHandler(database)
-	http.Handle("/data/", authMiddleware(maHandler, maUserManager))
+	maUserManager := NewUserManager(database)
+	maHandler := NewMAdminHandler(database)
 
-	http.Handle("/", authMiddleware(http.FileServer(http.Dir("static/")), maUserManager))
+	r := mux.NewRouter()
+	r.Handle("/data/{path:.*}", authMiddleware(maHandler, maUserManager))
+	r.Handle("/{path:.*}", authMiddleware(http.FileServer(http.Dir("static/")), maUserManager))
 
 	registerCleanUp(database)
 
-	log.Println("Listening...")
-	err := http.ListenAndServe(port, nil)
-	if err != nil {
-		panic(err)
+	return &madminServer{
+		&http.Server{Addr: port, Handler: r},
 	}
 }
 
+// todo: move functionalities to the (m madminServer) Shutdown() method
 func registerCleanUp(db *sql.DB) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		for _ = range c {
+		for range c {
 			// todo: gracefully shut down http server and close db
 			db.Close()
 
@@ -54,26 +53,26 @@ func registerCleanUp(db *sql.DB) {
 type madminHandler struct {
 	router *mux.Router
 
-	userManager *userManager
+	userManager UserManager
 
 	warehouse Warehouse
 	database  *sql.DB
 }
 
-func (m *madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m madminHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.router.ServeHTTP(w, r)
 }
 
-func newMAdminHandler(db *sql.DB) *madminHandler {
+func NewMAdminHandler(db *sql.DB) *madminHandler {
 	maHandler := &madminHandler{}
 
 	maHandler.database = db
-	maHandler.userManager = newUserManager(maHandler.database)
+	maHandler.userManager = NewUserManager(maHandler.database)
 	maHandler.warehouse = NewWarehouse(maHandler.database)
 
 	maHandler.router = mux.NewRouter()
 
-	maHandler.router.HandleFunc("/data/stock/{....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE", "PUT")
+	maHandler.router.HandleFunc("/data/stock/{id:....-..-..-..-......}", maHandler.stockItemHandler).Methods("GET", "DELETE", "PUT")
 	maHandler.router.HandleFunc("/data/stock/", maHandler.stockHandler).Methods("GET", "POST")
 	maHandler.router.HandleFunc("/data/stock/insufficient/", maHandler.insufficientStockHandler).Methods("GET")
 	maHandler.router.HandleFunc("/data/stock/expiring/", maHandler.expiringStockHandler).Methods("GET")
